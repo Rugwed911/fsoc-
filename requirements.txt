@@ -4,3 +4,5 @@ pandas
 plotly
 opencv-python-headless
 filterpy
+fastapi
+uvicorn[standard]
