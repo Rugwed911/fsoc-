@@ -49,7 +49,7 @@ except Exception as exc:
     print("Plotly theme note:", exc)
 
 
-PROJECT = Path("/content/drive/MyDrive/FSOC_SkyTrack_AI")
+PROJECT = Path(__file__).resolve().parents[1]
 ENGINE = PROJECT / "ai_agent" / "copilot_engine.py"
 VIDEO = PROJECT / "results/videos/validated_c18_airborne_demo_h264.mp4"
 CINEMATIC_VIDEO = PROJECT / "results/videos/FSOC_SkyTrack_Cinematic_Demo_75sec.mp4"

@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 
-PROJECT = Path("/content/drive/MyDrive/FSOC_SkyTrack_AI")
+PROJECT = Path(__file__).resolve().parents[1]
 REPORT_PATH = PROJECT / "results/reports/evidence_diagnostics.json"
 TRAJECTORY_PATH = PROJECT / "experiments/baselines/multi_trajectory_validation.csv"
 
