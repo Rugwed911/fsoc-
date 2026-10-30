@@ -1,0 +1,23 @@
+{
+  "step": 123,
+  "trials_per_trajectory_per_mode": 30,
+  "trajectory_count": 5,
+  "mode_count": 2,
+  "total_trials": 300,
+  "measurement_noise_std_px": 2.0,
+  "seed_base": 1232026,
+  "historical_sha256_before": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_sha256_after": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_csv_unchanged": true,
+  "step122_sha256_before": "c244375dd556d4fca5113b0d878182597bb079884e2bb808e90a2f2a0a9ef7d7",
+  "step122_sha256_after": "c244375dd556d4fca5113b0d878182597bb079884e2bb808e90a2f2a0a9ef7d7",
+  "step122_csv_unchanged": true,
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step123_monte_carlo/step123_raw_trials_20261029_203417.csv",
+    "per_trajectory_summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step123_monte_carlo/step123_summary_20261029_203417.csv",
+    "controller_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step123_monte_carlo/step123_controller_comparison_20261029_203417.csv",
+    "overall_summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step123_monte_carlo/step123_overall_summary_20261029_203417.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step123_monte_carlo/step123_rmse_comparison_20261029_203417.png"
+  },
+  "interpretation_note": "The two modes use separate deterministic noise streams. Summaries are descriptive Monte Carlo estimates, not proof of real-world performance or a formal significance test."
+}

@@ -1,0 +1,38 @@
+{
+  "step": 126,
+  "trials_per_condition_per_mode": 30,
+  "trajectories": [
+    "straight",
+    "circular",
+    "figure8",
+    "spiral",
+    "random"
+  ],
+  "latency_frames": [
+    0,
+    1,
+    3
+  ],
+  "miss_probabilities": [
+    0.0,
+    0.1,
+    0.2
+  ],
+  "measurement_noise_std_px": 2.0,
+  "kalman_acceleration_noise_std_deg_s2": 0.8,
+  "historical_sha256_before": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_sha256_after": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_csv_unchanged": true,
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_raw_trials_20261029_205437.csv",
+    "summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_summary_20261029_205437.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_paired_comparison_20261029_205437.csv",
+    "figure8_heatmap": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_figure8_kalman_comparison_20261029_205437.png"
+  },
+  "limitations": [
+    "Simplified constant-velocity target model.",
+    "Kalman acceleration noise is an assumed tuning parameter.",
+    "No hardware camera, detector, or actuator was tested.",
+    "Approximate confidence intervals are descriptive."
+  ]
+}

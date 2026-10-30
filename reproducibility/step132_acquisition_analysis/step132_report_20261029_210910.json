@@ -1,0 +1,21 @@
+{
+  "step": 132,
+  "source_trace": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step131_frame_diagnostics/step131_frame_trace_20261029_210707.csv",
+  "frame_count": 300,
+  "duration_seconds": 10.000000000000002,
+  "sample_interval_seconds": 0.033333333333333215,
+  "full_run_rmse_px": 15.14853822216941,
+  "first_sustained_lock": {
+    "Time (s)": 0.5666666666666667,
+    "Frame": 17,
+    "Required consecutive frames": 16,
+    "Required duration (s)": 0.5333333333333314
+  },
+  "outputs": {
+    "segment_metrics": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step132_acquisition_analysis/step132_segment_metrics_20261029_210910.csv",
+    "transient_contribution": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step132_acquisition_analysis/step132_transient_contribution_20261029_210910.csv",
+    "high_error_episodes": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step132_acquisition_analysis/step132_high_error_episodes_20261029_210910.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step132_acquisition_analysis/step132_acquisition_plot_20261029_210910.png"
+  },
+  "caveat": "Lock is defined using the recorded post-movement error. The sustained-lock duration is a diagnostic definition, not an external hardware acquisition standard."
+}

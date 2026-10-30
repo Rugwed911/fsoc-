@@ -1,0 +1,29 @@
+{
+  "step": 113,
+  "notebook_path": "/content/drive/MyDrive/Colab Notebooks/Virtual_Camera_Tracking.ipynb",
+  "notebook_sha256": "1e67f3bb5e3dfba56221dc4cf97163820ad5e7034d2e568d78370cd24887b391",
+  "cell_count": 369,
+  "candidate_cells": [
+    43,
+    49,
+    65,
+    148,
+    183,
+    205,
+    206,
+    222,
+    231,
+    236,
+    239,
+    254,
+    268,
+    269,
+    277,
+    278,
+    289,
+    333
+  ],
+  "report_path": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step113_source_audit_20261029_200755/step113_candidate_source_audit.txt",
+  "read_only": true,
+  "historical_csvs_modified": false
+}

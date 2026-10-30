@@ -1,0 +1,9 @@
+{
+  "project_name": "FSOC SkyTrack AI",
+  "description": "AI-assisted airborne FSOC optical tracking simulation and experiment analysis platform.",
+  "existing_simulation": "Preserve and integrate the previously validated fighter-plane visualization and optical beacon tracking pipeline.",
+  "ai_provider": "Nebius Token Factory",
+  "nvidia_model": "Nemotron (model ID to be verified)",
+  "created_at": "2026-10-28T09:24:37",
+  "status": "Workspace initialized; API integration pending."
+}

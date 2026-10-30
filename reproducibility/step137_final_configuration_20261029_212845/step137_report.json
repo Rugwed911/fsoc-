@@ -1,0 +1,87 @@
+{
+  "step": 137,
+  "created_at": "2026-10-29T21:28:47",
+  "source_csv": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step135_actuator_limit_sensitivity/step135_summary_20261029_211928.csv",
+  "source_sha256_before": "76029f3f22b4437b8da7110f16ee0a57d073a37160662d8e0c2bfeda2f16df03",
+  "source_sha256_after": "76029f3f22b4437b8da7110f16ee0a57d073a37160662d8e0c2bfeda2f16df03",
+  "source_unchanged": true,
+  "criteria": {
+    "Nominal": {
+      "latency": 0,
+      "miss_pct": 0,
+      "max_rmse_px": 10.0,
+      "min_lock_pct": 95.0,
+      "max_saturation_pct": 1.0
+    },
+    "Difficult": {
+      "latency": 3,
+      "miss_pct": 20,
+      "max_rmse_px": 15.0,
+      "min_lock_pct": 95.0,
+      "max_saturation_pct": 1.0
+    }
+  },
+  "configurations_evaluated": 18,
+  "configurations_passed": 8,
+  "configurations_failed": 10,
+  "selected_configurations": [
+    {
+      "Scenario": "Difficult",
+      "Latency frames": 3,
+      "Miss probability (%)": 20.0,
+      "Rate limit (deg/s)": 5.0,
+      "Acquisition KP": 12.0,
+      "Trials": 30,
+      "Mean_RMSE_px": 13.281569931838616,
+      "SD_RMSE_px": 0.5448562380617523,
+      "P95_RMSE_px": 14.61686681260462,
+      "Worst_RMSE_px": 14.707784921341965,
+      "Mean_first_second_RMSE_px": 41.655703287030974,
+      "Mean_steady_RMSE_px": 1.7820397969100896,
+      "Mean_lock_pct": 97.2,
+      "Mean_lock_time_s": 0.28,
+      "Mean_saturation_pct": 0.7333333333333333,
+      "Max_raw_pan_demand": 8.642935217407391,
+      "Max_raw_tilt_demand": 2.061576766309846,
+      "RMSE_pass": true,
+      "Lock_pass": true,
+      "Saturation_pass": true,
+      "Overall_pass": true,
+      "Result": "PASS"
+    },
+    {
+      "Scenario": "Nominal",
+      "Latency frames": 0,
+      "Miss probability (%)": 0.0,
+      "Rate limit (deg/s)": 5.0,
+      "Acquisition KP": 12.0,
+      "Trials": 30,
+      "Mean_RMSE_px": 6.5429159667234,
+      "SD_RMSE_px": 0.0755140879904888,
+      "P95_RMSE_px": 6.666318149868173,
+      "Worst_RMSE_px": 6.706085932042643,
+      "Mean_first_second_RMSE_px": 20.13253597879107,
+      "Mean_steady_RMSE_px": 1.5869968122150773,
+      "Mean_lock_pct": 98.35555555555555,
+      "Mean_lock_time_s": 0.1644444444444444,
+      "Mean_saturation_pct": 0.7000000000000001,
+      "Max_raw_pan_demand": 8.667430364187979,
+      "Max_raw_tilt_demand": 1.3977376043277654,
+      "RMSE_pass": true,
+      "Lock_pass": true,
+      "Saturation_pass": true,
+      "Overall_pass": true,
+      "Result": "PASS"
+    }
+  ],
+  "outputs": {
+    "all_configurations": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step137_final_configuration_20261029_212845/step137_all_configurations.csv",
+    "selected_configurations": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step137_final_configuration_20261029_212845/step137_selected_configurations.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step137_final_configuration_20261029_212845/step137_configuration_comparison.png"
+  },
+  "limitations": [
+    "Acceptance thresholds are proposed engineering targets.",
+    "Results represent simulation, not hardware validation.",
+    "Selection is limited to the tested gains and rate limits."
+  ]
+}

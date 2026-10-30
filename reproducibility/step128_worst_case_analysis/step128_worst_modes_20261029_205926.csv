@@ -1,0 +1,4 @@
+Mode,Trajectory,Latency (frames),Miss Probability (%),Mean RMSE (px),Mean Lock (%)
+last_observation,straight,3,20.0,17.73897691809388,73.56666666666666
+kalman_stale,straight,3,20.0,17.572515078076155,91.68888888888888
+kalman_predictive,straight,3,20.0,15.758443084756744,94.5

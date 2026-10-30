@@ -1,0 +1,440 @@
+
+from pathlib import Path
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
+
+PROJECT = Path("/content/drive/MyDrive/FSOC_SkyTrack_AI")
+
+VIDEO = PROJECT / "results/videos/validated_c18_airborne_demo.mp4"
+MODEL = PROJECT / "simulation/models/beacon_detector_best.pt"
+ARCHITECTURE = PROJECT / "results/figures/original_system_architecture.png"
+
+DATASETS = {
+    "Validated C18 metrics": PROJECT / "experiments/baselines/validated_c18_metrics.csv",
+    "YOLO centroid benchmark": PROJECT / "experiments/baselines/yolo_centroid_benchmark.csv",
+    "Multi-trajectory validation": PROJECT / "experiments/baselines/multi_trajectory_validation.csv",
+}
+
+st.set_page_config(
+    page_title="FSOC SkyTrack AI",
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.markdown("""
+<style>
+.stApp {
+    background: #080b12;
+    color: #e8edf5;
+}
+[data-testid="stSidebar"] {
+    background: #0d111b;
+    border-right: 1px solid #202a3a;
+}
+.block-container {
+    padding-top: 1.8rem;
+    max-width: 1500px;
+}
+[data-testid="stMetric"] {
+    background: #111827;
+    border: 1px solid #273449;
+    border-radius: 12px;
+    padding: 16px;
+}
+[data-testid="stMetricLabel"] {
+    color: #9caec4;
+}
+h1, h2, h3 {
+    color: #f3f6fc;
+}
+div[data-testid="stDataFrame"] {
+    border: 1px solid #273449;
+    border-radius: 8px;
+}
+.small-note {
+    color: #9caec4;
+    font-size: 0.88rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+def load_csv(path):
+    if not path.exists():
+        return None, f"File not found: {path.name}"
+    try:
+        df = pd.read_csv(path)
+        if df.empty and len(df.columns) == 0:
+            return df, "CSV exists but contains no readable columns."
+        return df, None
+    except Exception as exc:
+        return None, str(exc)
+
+
+def numeric_columns(df):
+    if df is None:
+        return []
+    return list(df.select_dtypes(include="number").columns)
+
+
+def choose_column(columns, keywords):
+    for keyword in keywords:
+        for col in columns:
+            if keyword in str(col).lower():
+                return col
+    return None
+
+
+def display_dataframe(df):
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+
+def format_value(value):
+    try:
+        value = float(value)
+        if abs(value) >= 1000:
+            return f"{value:,.2f}"
+        return f"{value:.3f}"
+    except Exception:
+        return str(value)
+
+
+st.sidebar.title("FSOC SkyTrack AI")
+st.sidebar.caption("Airborne optical tracking research")
+page = st.sidebar.radio(
+    "NAVIGATION",
+    [
+        "Mission Overview",
+        "Tracking Evidence",
+        "Trajectory Analysis",
+        "System Architecture",
+        "AI Engineering Copilot",
+        "Project Assets",
+    ],
+)
+
+st.sidebar.divider()
+st.sidebar.markdown("**System status**")
+st.sidebar.write("🟢 Local dashboard")
+st.sidebar.write("🟢 Imported project assets")
+st.sidebar.write("🟡 Nebius / Nemotron integration pending")
+st.sidebar.caption(
+    "Recorded demonstration and saved experiment data are shown as such. "
+    "This dashboard does not claim live inference."
+)
+
+# Load evidence once per Streamlit cache cycle.
+frames = {}
+errors = {}
+for label, path in DATASETS.items():
+    frames[label], errors[label] = load_csv(path)
+
+# ---------------- MISSION OVERVIEW ----------------
+if page == "Mission Overview":
+    st.title("FSOC SkyTrack AI")
+    st.markdown(
+        "### AI-assisted coarse alignment for airborne Free-Space Optical Communication"
+    )
+    st.markdown(
+        "A virtual-camera tracking research platform for locating and following "
+        "an optical beacon in an airborne scene."
+    )
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Detector weights", "Available" if MODEL.exists() else "Missing")
+    c2.metric("Recorded demo", "Available" if VIDEO.exists() else "Missing")
+    c3.metric(
+        "Experiment datasets",
+        f"{sum(df is not None for df in frames.values())}/{len(DATASETS)}",
+    )
+
+    st.divider()
+    left, right = st.columns([1.6, 1])
+
+    with left:
+        st.subheader("Airborne demonstration")
+        if VIDEO.exists():
+            st.video(str(VIDEO))
+            st.caption(
+                "Previously recorded project demonstration. Playback is not "
+                "a live model-inference session."
+            )
+        else:
+            st.warning("The imported demonstration video was not found.")
+
+    with right:
+        st.subheader("Project capabilities")
+        st.markdown("""
+        - Virtual camera and optical-beacon tracking
+        - YOLO-based beacon detection model artifact
+        - Tracking and trajectory evaluation evidence
+        - Experiment comparison and diagnostic views
+        - Planned engineering copilot using NVIDIA Nemotron
+        """)
+        st.info(
+            "The fighter-plane scene is the airborne visualization. "
+            "The tracked reference is the simulated optical beacon, not the aircraft."
+        )
+
+    st.divider()
+    st.subheader("Available experiment files")
+    for label, path in DATASETS.items():
+        df = frames[label]
+        if df is not None:
+            st.write(f"✅ **{label}** — {len(df)} rows, {len(df.columns)} columns")
+        else:
+            st.write(f"⚠️ **{label}** — {errors[label]}")
+
+# ---------------- TRACKING EVIDENCE ----------------
+elif page == "Tracking Evidence":
+    st.title("Tracking Evidence")
+    st.caption("Inspect the imported CSV evidence without changing the source files.")
+
+    label = st.selectbox("Dataset", list(DATASETS.keys()))
+    df = frames[label]
+
+    if df is None:
+        st.error(errors[label])
+    elif df.empty:
+        st.warning("This CSV has no data rows.")
+        st.write("Columns:", list(df.columns))
+    else:
+        st.write(f"**Rows:** {len(df)} · **Columns:** {len(df.columns)}")
+        display_dataframe(df.head(100))
+
+        nums = numeric_columns(df)
+        if nums:
+            st.subheader("Numeric column explorer")
+            y_col = st.selectbox("Numeric field", nums)
+            values = pd.to_numeric(df[y_col], errors="coerce").dropna()
+
+            if not values.empty:
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Count", f"{len(values):,}")
+                m2.metric("Mean", format_value(values.mean()))
+                m3.metric("Minimum", format_value(values.min()))
+                m4.metric("Maximum", format_value(values.max()))
+
+                chart_df = df[[y_col]].copy()
+                chart_df[y_col] = pd.to_numeric(chart_df[y_col], errors="coerce")
+                chart_df = chart_df.dropna()
+                chart_df["Row"] = range(len(chart_df))
+
+                fig = px.line(
+                    chart_df,
+                    x="Row",
+                    y=y_col,
+                    title=f"{y_col} by row",
+                    template="plotly_dark",
+                )
+                fig.update_layout(
+                    paper_bgcolor="#080b12",
+                    plot_bgcolor="#0d111b",
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No numeric columns were detected in this dataset.")
+
+        st.download_button(
+            "Download selected CSV",
+            data=df.to_csv(index=False).encode("utf-8"),
+            file_name=DATASETS[label].name,
+            mime="text/csv",
+        )
+
+# ---------------- TRAJECTORY ANALYSIS ----------------
+elif page == "Trajectory Analysis":
+    st.title("Trajectory Analysis")
+    st.caption("Explore the imported validation data; values are not regenerated here.")
+
+    df = frames["Multi-trajectory validation"]
+
+    if df is None:
+        st.error(errors["Multi-trajectory validation"])
+    elif df.empty:
+        st.warning("The trajectory CSV is empty.")
+    else:
+        display_dataframe(df)
+
+        cols = list(df.columns)
+        category_col = choose_column(
+            cols, ["trajectory", "scenario", "path", "motion", "test", "name"]
+        )
+        metric_col = choose_column(
+            numeric_columns(df),
+            ["lock", "success", "accuracy", "error", "rmse", "fps", "confidence"],
+        )
+
+        if category_col and metric_col:
+            st.subheader("Compare a recorded metric")
+            available_metrics = numeric_columns(df)
+            selected_metric = st.selectbox(
+                "Metric column",
+                available_metrics,
+                index=available_metrics.index(metric_col),
+            )
+
+            plot_df = df[[category_col, selected_metric]].copy()
+            plot_df[selected_metric] = pd.to_numeric(
+                plot_df[selected_metric], errors="coerce"
+            )
+            plot_df = plot_df.dropna()
+
+            fig = px.bar(
+                plot_df,
+                x=category_col,
+                y=selected_metric,
+                title=f"{selected_metric} by {category_col}",
+                template="plotly_dark",
+            )
+            fig.update_layout(
+                paper_bgcolor="#080b12",
+                plot_bgcolor="#0d111b",
+                xaxis_title="Recorded category",
+                yaxis_title=selected_metric,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info(
+                "The app could not safely infer the category and metric columns. "
+                "Use the table above to inspect the original column names."
+            )
+
+# ---------------- SYSTEM ARCHITECTURE ----------------
+elif page == "System Architecture":
+    st.title("System Architecture")
+    if ARCHITECTURE.exists():
+        st.image(str(ARCHITECTURE), use_container_width=True)
+    else:
+        st.warning("Original architecture image was not found.")
+
+    st.markdown("""
+    **Current scope**
+    1. Simulated airborne scene and optical beacon
+    2. Detector artifact and tracking experiment evidence
+    3. Camera/control evaluation outputs
+    4. Local dashboard for review and analysis
+    5. Planned Nemotron engineering copilot, pending service access
+    """)
+
+# ---------------- AI ENGINEERING COPILOT ----------------
+elif page == "AI Engineering Copilot":
+    st.title("AI Engineering Copilot")
+    st.caption(
+        "Offline prototype · This panel does not call an LLM or claim to be Nemotron."
+    )
+
+    st.info(
+        "Until Nebius Token Factory access is available, this panel performs "
+        "basic local diagnostics from the imported CSV files. It is not a substitute "
+        "for the planned NVIDIA Nemotron-powered reasoning layer."
+    )
+
+    selected = st.selectbox("Evidence source", list(DATASETS.keys()))
+    df = frames[selected]
+
+    if df is None:
+        st.error(errors[selected])
+    elif df.empty:
+        st.warning("No rows are available for analysis.")
+    else:
+        st.write(f"**Evidence:** {selected}")
+        st.write(f"Rows: {len(df)} · Columns: {len(df.columns)}")
+
+        nums = numeric_columns(df)
+        if nums:
+            st.subheader("Available numeric signals")
+            summaries = []
+            for col in nums:
+                values = pd.to_numeric(df[col], errors="coerce").dropna()
+                if not values.empty:
+                    summaries.append({
+                        "Signal": str(col),
+                        "Valid values": len(values),
+                        "Mean": values.mean(),
+                        "Minimum": values.min(),
+                        "Maximum": values.max(),
+                    })
+
+            if summaries:
+                display_dataframe(pd.DataFrame(summaries))
+
+            st.subheader("Ask a question about this dataset")
+            question = st.text_area(
+                "Question",
+                placeholder="Example: Which numeric fields should I inspect for tracking error?",
+            )
+
+            if st.button("Run offline diagnostic", type="primary"):
+                st.markdown("#### Local diagnostic")
+                st.write(
+                    "This is a column-based diagnostic, not a generative-AI response. "
+                    "No new experiments have been run."
+                )
+
+                q = question.lower()
+                matching = [
+                    col for col in nums
+                    if any(token in str(col).lower() for token in
+                           ["error", "rmse", "lock", "confidence", "fps", "detect"])
+                ]
+
+                if matching:
+                    st.write("Potentially relevant numeric fields:", ", ".join(matching))
+                else:
+                    st.write("Numeric fields found:", ", ".join(map(str, nums)))
+
+                if any(word in q for word in ["error", "rmse", "tracking"]):
+                    st.write(
+                        "Review error-related fields and confirm their units, "
+                        "aggregation window, and test conditions before comparing runs."
+                    )
+                elif any(word in q for word in ["trajectory", "path", "motion"]):
+                    st.write(
+                        "Group results by trajectory or motion condition if those "
+                        "categories are present in the dataset."
+                    )
+                elif any(word in q for word in ["confidence", "detection", "yolo"]):
+                    st.write(
+                        "Inspect detector confidence alongside detection success and "
+                        "centroid error; confidence alone does not establish tracking quality."
+                    )
+                else:
+                    st.write(
+                        "Choose a specific metric, inspect its distribution, and compare "
+                        "only runs with compatible conditions."
+                    )
+        else:
+            st.warning("No numeric fields were detected in this dataset.")
+
+# ---------------- ASSET INVENTORY ----------------
+elif page == "Project Assets":
+    st.title("Project Assets")
+    paths = [
+        ("Beacon detector weights", MODEL),
+        ("Recorded airborne demo", VIDEO),
+        ("Original system architecture", ARCHITECTURE),
+        ("Asset import manifest", PROJECT / "asset_import_manifest.csv"),
+    ] + [(label, path) for label, path in DATASETS.items()]
+
+    inventory = []
+    for label, path in paths:
+        inventory.append({
+            "Asset": label,
+            "Status": "Available" if path.is_file() else "Missing",
+            "Size (MB)": round(path.stat().st_size / (1024 * 1024), 3)
+                if path.is_file() else None,
+            "Path": str(path),
+        })
+
+    display_dataframe(pd.DataFrame(inventory))
+    st.caption("File presence is verified at dashboard runtime; model quality is not retested.")
+
+st.divider()
+st.caption(
+    "FSOC SkyTrack AI · Research prototype · "
+    "Saved evidence is distinguished from live inference."
+)

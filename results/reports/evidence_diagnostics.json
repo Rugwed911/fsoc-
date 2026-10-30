@@ -1,0 +1,113 @@
+{
+  "project": "FSOC SkyTrack AI",
+  "source": "validated_c18_metrics.csv",
+  "frame_rows": 300,
+  "frame_columns": 18,
+  "trajectory_source": "multi_trajectory_validation.csv",
+  "trajectory_rows": 5,
+  "metrics": {
+    "centroid_error_px": {
+      "valid_frames": 300,
+      "mean": 0.7150125588290255,
+      "median": 0.7351780897166031,
+      "rmse": 0.7693078919471664,
+      "maximum": 1.3701915549944228,
+      "within_1px_percent": 84.0,
+      "within_2px_percent": 100.0,
+      "within_5px_percent": 100.0
+    },
+    "confidence": {
+      "valid_rows": 300,
+      "mean": 0.7837467737992605,
+      "median": 0.7869364023208618,
+      "minimum": 0.6850445866584778,
+      "maximum": 0.8771786093711853
+    },
+    "inference_latency_ms": {
+      "valid_rows": 300,
+      "mean": 125.15509972338502,
+      "median": 119.6717325001373,
+      "minimum": 83.08154800033662,
+      "maximum": 502.7876299991476
+    }
+  },
+  "notes": [
+    "Computed from saved CSV evidence; no new experiment was run.",
+    "Detector centroid error is not the same as closed-loop camera tracking error.",
+    "Latency-derived FPS is a reciprocal summary, not a measured real-time throughput test."
+  ],
+  "trajectory_columns": [
+    "Trajectory",
+    "Average Error (px)",
+    "RMSE (px)",
+    "Maximum Error (px)",
+    "Final Error (px)",
+    "\u226410 px Lock (%)",
+    "Visibility (%)",
+    "Max Pan Demand (deg/s)",
+    "Max Tilt Demand (deg/s)",
+    "PASS \u226580%"
+  ],
+  "trajectory_records": [
+    {
+      "Trajectory": "straight",
+      "Average Error (px)": 2.199207795215608,
+      "RMSE (px)": 11.485030914871237,
+      "Maximum Error (px)": 109.96321260639591,
+      "Final Error (px)": 1.639182528379024e-05,
+      "\u226410 px Lock (%)": 95.33333333333334,
+      "Visibility (%)": 100.0,
+      "Max Pan Demand (deg/s)": 3.609468596075555,
+      "Max Tilt Demand (deg/s)": 0.0,
+      "PASS \u226580%": true
+    },
+    {
+      "Trajectory": "circular",
+      "Average Error (px)": 1.4664503888649356,
+      "RMSE (px)": 7.658150060706725,
+      "Maximum Error (px)": 73.32184185028916,
+      "Final Error (px)": 2.464921428840213e-05,
+      "\u226410 px Lock (%)": 96.33333333333334,
+      "Visibility (%)": 100.0,
+      "Max Pan Demand (deg/s)": 0.3093941173194038,
+      "Max Tilt Demand (deg/s)": 2.290235332961455,
+      "PASS \u226580%": true
+    },
+    {
+      "Trajectory": "figure8",
+      "Average Error (px)": 9.397575609534782e-05,
+      "RMSE (px)": 0.0001067975928785,
+      "Maximum Error (px)": 0.0001882543502315,
+      "Final Error (px)": 3.964761785791535e-05,
+      "\u226410 px Lock (%)": 100.0,
+      "Visibility (%)": 100.0,
+      "Max Pan Demand (deg/s)": 0.3208535224352462,
+      "Max Tilt Demand (deg/s)": 0.3666799479083219,
+      "PASS \u226580%": true
+    },
+    {
+      "Trajectory": "spiral",
+      "Average Error (px)": 0.5957444741812697,
+      "RMSE (px)": 3.1111458113441457,
+      "Maximum Error (px)": 29.78699825167996,
+      "Final Error (px)": 2.520496743945536e-05,
+      "\u226410 px Lock (%)": 98.0,
+      "Visibility (%)": 100.0,
+      "Max Pan Demand (deg/s)": 0.1984809880951025,
+      "Max Tilt Demand (deg/s)": 0.9492928224244508,
+      "PASS \u226580%": true
+    },
+    {
+      "Trajectory": "random",
+      "Average Error (px)": 1.4664319057221888,
+      "RMSE (px)": 7.6581392270404995,
+      "Maximum Error (px)": 73.32184185028916,
+      "Final Error (px)": 2.139166132483634e-05,
+      "\u226410 px Lock (%)": 96.33333333333334,
+      "Visibility (%)": 100.0,
+      "Max Pan Demand (deg/s)": 0.6077967347020081,
+      "Max Tilt Demand (deg/s)": 2.453929769934382,
+      "PASS \u226580%": true
+    }
+  ]
+}

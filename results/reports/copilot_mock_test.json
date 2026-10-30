@@ -1,0 +1,11 @@
+{
+  "mode": "mock",
+  "provider": "local deterministic test adapter",
+  "question": "Which trajectory has the highest RMSE?",
+  "answer": "Highest recorded RMSE: straight (11.4850 px).\nLowest recorded RMSE: figure8 (0.000107 px).\nThe figure-eight RMSE is unusually small compared with other paths; verify the test configuration and source data.",
+  "evidence_files": [
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/results/reports/evidence_diagnostics.json",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/experiments/baselines/multi_trajectory_validation.csv"
+  ],
+  "warning": "This is a local rule-based response, not a generative model response."
+}

@@ -1,0 +1,26 @@
+{
+  "step": 124,
+  "trials_per_mode_per_trajectory": 30,
+  "measurement_noise_std_px": 2.0,
+  "common_random_numbers": true,
+  "historical_sha256_before": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_sha256_after": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_csv_unchanged": true,
+  "overall_paired_comparison": {
+    "Trials": 150,
+    "Mean RMSE Difference (FF - FB) (px)": -2.1587457974669038,
+    "SD Paired Difference (px)": 1.8172155199489104,
+    "Approx 95% CI Lower (px)": -2.4495608482009326,
+    "Approx 95% CI Upper (px)": -1.867930746732875,
+    "Trials FF Lower RMSE (%)": 97.33333333333334,
+    "Mean Lock Difference (pp)": 8.813333333333334,
+    "Trajectory": "ALL TRAJECTORIES"
+  },
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step124_paired_monte_carlo/step124_paired_raw_20261029_204309.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step124_paired_monte_carlo/step124_paired_comparison_20261029_204309.csv",
+    "controller_summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step124_paired_monte_carlo/step124_controller_summary_20261029_204309.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step124_paired_monte_carlo/step124_paired_rmse_20261029_204309.png"
+  },
+  "interpretation": "Negative RMSE difference favors causal feed-forward. Intervals are approximate descriptive 95% intervals."
+}

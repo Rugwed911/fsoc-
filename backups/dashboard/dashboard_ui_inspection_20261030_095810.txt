@@ -1,0 +1,1221 @@
+00001: 
+00002: from pathlib import Path
+00003: import json
+00004: import pandas as pd
+00005: import streamlit as st
+00006: import plotly.express as px
+00007: import plotly.graph_objects as go
+00008: 
+00009: PROJECT = Path("/content/drive/MyDrive/FSOC_SkyTrack_AI")
+00010: ENGINE = PROJECT / "ai_agent" / "copilot_engine.py"
+00011: VIDEO = PROJECT / "results/videos/validated_c18_airborne_demo_h264.mp4"
+00012: MODEL = PROJECT / "simulation/models/beacon_detector_best.pt"
+00013: ARCH = PROJECT / "results/figures/original_system_architecture.png"
+00014: REPORT = PROJECT / "results/reports/evidence_diagnostics.json"
+00015: 
+00016: DATASETS = {
+00017:     "C18 Flight Run": PROJECT / "experiments/baselines/validated_c18_metrics.csv",
+00018:     "YOLO Centroid Benchmark": PROJECT / "experiments/baselines/yolo_centroid_benchmark.csv",
+00019:     "Trajectory Validation": PROJECT / "experiments/baselines/multi_trajectory_validation.csv",
+00020: }
+00021: 
+00022: st.set_page_config(
+00023:     page_title="SKYTRACK // FSOC",
+00024:     page_icon="✦",
+00025:     layout="wide",
+00026:     initial_sidebar_state="expanded",
+00027: )
+00028: 
+00029: # ---------------- DESIGN SYSTEM ----------------
+00030: st.markdown("""
+00031: <style>
+00032: @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+00033: 
+00034: :root {
+00035:     --bg: #06090e;
+00036:     --panel: #0b121b;
+00037:     --panel2: #101b28;
+00038:     --line: #203344;
+00039:     --cyan: #65e7f2;
+00040:     --cyan2: #27b8d1;
+00041:     --text: #eaf3fb;
+00042:     --muted: #8195a8;
+00043:     --green: #74edbd;
+00044:     --amber: #ffc979;
+00045: }
+00046: 
+00047: .stApp {
+00048:     background:
+00049:         radial-gradient(ellipse at 78% 0%, rgba(20,78,103,.18), transparent 38%),
+00050:         var(--bg);
+00051:     color: var(--text);
+00052:     font-family: 'Inter', sans-serif;
+00053: }
+00054: 
+00055: [data-testid="stHeader"] {
+00056:     background: rgba(6,9,14,.92);
+00057: }
+00058: [data-testid="stSidebar"] {
+00059:     background: #080e16;
+00060:     border-right: 1px solid var(--line);
+00061: }
+00062: [data-testid="stSidebar"] > div {
+00063:     padding-top: 1.2rem;
+00064: }
+00065: .block-container {
+00066:     max-width: 1600px;
+00067:     padding-top: 1.4rem;
+00068:     padding-bottom: 3rem;
+00069: }
+00070: h1, h2, h3 {
+00071:     color: var(--text) !important;
+00072:     font-family: 'Barlow Condensed', sans-serif !important;
+00073:     letter-spacing: .5px;
+00074: }
+00075: h1 { font-size: 2.8rem !important; font-weight: 800 !important; }
+00076: h2 { font-size: 1.8rem !important; }
+00077: h3 { font-size: 1.35rem !important; }
+00078: 
+00079: p, label, .stMarkdown {
+00080:     color: var(--text);
+00081: }
+00082: [data-testid="stMetric"] {
+00083:     background: linear-gradient(145deg, #101c29, #0a111a);
+00084:     border: 1px solid #263b4c;
+00085:     border-radius: 9px;
+00086:     padding: 15px 17px;
+00087:     min-height: 110px;
+00088: }
+00089: [data-testid="stMetricLabel"] {
+00090:     color: var(--muted) !important;
+00091:     font-size: .75rem !important;
+00092:     text-transform: uppercase;
+00093:     letter-spacing: 1.2px;
+00094: }
+00095: [data-testid="stMetricValue"] {
+00096:     color: var(--cyan) !important;
+00097:     font-family: 'IBM Plex Mono', monospace !important;
+00098: }
+00099: [data-testid="stDataFrame"] {
+00100:     border: 1px solid var(--line);
+00101:     border-radius: 8px;
+00102: }
+00103: .stButton > button {
+00104:     background: linear-gradient(90deg, #123747, #125065);
+00105:     color: #e7fcff;
+00106:     border: 1px solid #27778b;
+00107:     border-radius: 5px;
+00108:     font-weight: 600;
+00109:     min-height: 42px;
+00110: }
+00111: .stButton > button:hover {
+00112:     background: #17677a;
+00113:     border-color: var(--cyan);
+00114:     color: white;
+00115: }
+00116: div[data-baseweb="select"] > div,
+00117: div[data-baseweb="input"] > div,
+00118: div[data-baseweb="textarea"] > div {
+00119:     background: #101923;
+00120:     border-color: #2a4052;
+00121: }
+00122: hr {
+00123:     border-color: var(--line);
+00124: }
+00125: code, pre {
+00126:     font-family: 'IBM Plex Mono', monospace !important;
+00127: }
+00128: section[data-testid="stSidebar"] .stRadio label {
+00129:     font-size: .92rem;
+00130: }
+00131: .stCaption, [data-testid="stCaptionContainer"] {
+00132:     color: var(--muted) !important;
+00133: }
+00134: .sky-eyebrow {
+00135:     color: var(--cyan);
+00136:     font-family: 'IBM Plex Mono', monospace;
+00137:     font-size: .72rem;
+00138:     letter-spacing: 2.3px;
+00139:     text-transform: uppercase;
+00140: }
+00141: .sky-title {
+00142:     color: #f3f8ff;
+00143:     font-family: 'Barlow Condensed', sans-serif;
+00144:     font-size: clamp(2.7rem, 5vw, 4.7rem);
+00145:     font-weight: 800;
+00146:     line-height: .96;
+00147:     letter-spacing: 1px;
+00148:     margin: .35rem 0 .7rem 0;
+00149: }
+00150: .sky-subtitle {
+00151:     color: #a4b8c9;
+00152:     font-size: .94rem;
+00153:     line-height: 1.65;
+00154: }
+00155: .sky-panel {
+00156:     background: linear-gradient(140deg, rgba(15,28,41,.96), rgba(8,14,22,.98));
+00157:     border: 1px solid #243a4c;
+00158:     border-radius: 9px;
+00159:     padding: 17px 19px;
+00160: }
+00161: .sky-panel-title {
+00162:     font-family: 'IBM Plex Mono', monospace;
+00163:     font-size: .7rem;
+00164:     letter-spacing: 1.5px;
+00165:     color: #8da7b9;
+00166:     text-transform: uppercase;
+00167:     margin-bottom: 9px;
+00168: }
+00169: .sky-status {
+00170:     display: inline-block;
+00171:     color: var(--green);
+00172:     border: 1px solid #285849;
+00173:     background: #0b251f;
+00174:     border-radius: 3px;
+00175:     padding: 4px 8px;
+00176:     font-family: 'IBM Plex Mono', monospace;
+00177:     font-size: .69rem;
+00178:     letter-spacing: .7px;
+00179: }
+00180: .sky-warn {
+00181:     display: inline-block;
+00182:     color: var(--amber);
+00183:     border: 1px solid #5a4627;
+00184:     background: #261d12;
+00185:     border-radius: 3px;
+00186:     padding: 4px 8px;
+00187:     font-family: 'IBM Plex Mono', monospace;
+00188:     font-size: .69rem;
+00189: }
+00190: .sky-value {
+00191:     font-family: 'IBM Plex Mono', monospace;
+00192:     color: var(--cyan);
+00193:     font-size: 1.35rem;
+00194:     font-weight: 600;
+00195: }
+00196: .sky-label {
+00197:     font-size: .71rem;
+00198:     color: #8197a9;
+00199:     letter-spacing: 1px;
+00200:     text-transform: uppercase;
+00201: }
+00202: .sky-divider {
+00203:     height: 1px;
+00204:     background: linear-gradient(90deg, #28556a, #172431, transparent);
+00205:     margin: 18px 0;
+00206: }
+00207: div[data-testid="stVideo"] {
+00208:     border: 1px solid #29495d;
+00209:     border-radius: 9px;
+00210:     overflow: hidden;
+00211: }
+00212: </style>
+00213: """, unsafe_allow_html=True)
+00214: 
+00215: 
+00216: def read_csv(path):
+00217:     if not path.is_file():
+00218:         return None
+00219:     try:
+00220:         return pd.read_csv(path)
+00221:     except Exception:
+00222:         return None
+00223: 
+00224: 
+00225: def read_report():
+00226:     if not REPORT.is_file():
+00227:         return {}
+00228:     try:
+00229:         return json.loads(REPORT.read_text(encoding="utf-8"))
+00230:     except Exception:
+00231:         return {}
+00232: 
+00233: 
+00234: def metric_card(label, value, note=""):
+00235:     st.markdown(
+00236:         f"""
+00237:         <div class="sky-panel">
+00238:           <div class="sky-panel-title">{label}</div>
+00239:           <div class="sky-value">{value}</div>
+00240:           <div style="color:#8195a8;font-size:.72rem;margin-top:7px">{note}</div>
+00241:         </div>
+00242:         """,
+00243:         unsafe_allow_html=True,
+00244:     )
+00245: 
+00246: 
+00247: def chart_theme(fig, height=340):
+00248:     fig.update_layout(
+00249:         template="plotly_dark",
+00250:         paper_bgcolor="rgba(0,0,0,0)",
+00251:         plot_bgcolor="rgba(7,13,20,0.5)",
+00252:         font=dict(family="IBM Plex Mono, monospace", color="#a9bdcd", size=11),
+00253:         title_font=dict(family="Barlow Condensed, sans-serif", size=20, color="#edf7ff"),
+00254:         margin=dict(l=15, r=15, t=55, b=20),
+00255:         height=height,
+00256:         legend=dict(
+00257:             bgcolor="rgba(0,0,0,0)",
+00258:             borderwidth=0,
+00259:         ),
+00260:         xaxis=dict(gridcolor="#1b2b39", zerolinecolor="#294252"),
+00261:         yaxis=dict(gridcolor="#1b2b39", zerolinecolor="#294252"),
+00262:     )
+00263:     return fig
+00264: 
+00265: 
+00266: # ---------------- SIDEBAR ----------------
+00267: with st.sidebar:
+00268:     st.markdown(
+00269:         """
+00270:         <div style="padding:4px 0 18px">
+00271:           <div style="font-family:'IBM Plex Mono';font-size:.67rem;color:#65e7f2;letter-spacing:2px">
+00272:           AEROSPACE SYSTEMS / 01
+00273:           </div>
+00274:           <div style="font-family:'Barlow Condensed';font-size:2rem;font-weight:800;color:#f2f8ff;line-height:1.05;margin-top:8px">
+00275:           SKYTRACK<span style="color:#65e7f2"> AI</span>
+00276:           </div>
+00277:           <div style="color:#8195a8;font-size:.76rem;margin-top:7px">
+00278:           Airborne optical tracking lab
+00279:           </div>
+00280:         </div>
+00281:         <div class="sky-divider"></div>
+00282:         """,
+00283:         unsafe_allow_html=True,
+00284:     )
+00285: 
+00286:     page = st.radio(
+00287:         "MISSION CONSOLE",
+00288:         [
+00289:             "Mission Overview",
+00290:             "Optical Tracking Lab",
+00291:             "Flight Analytics",
+00292:             "AI Mission Engineer",
+00293:             "System Architecture",
+00294:             "Asset Registry",
+00295:         ],
+00296:         label_visibility="visible",
+00297:     )
+00298: 
+00299:     st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+00300:     st.markdown(
+00301:         """
+00302:         <div class="sky-panel-title">SYSTEM READINESS</div>
+00303:         <div style="margin:12px 0;color:#d5e2ee;font-size:.82rem">
+00304:           <span style="color:#74edbd">●</span> Local dashboard operational
+00305:         </div>
+00306:         <div style="margin:12px 0;color:#d5e2ee;font-size:.82rem">
+00307:           <span style="color:#74edbd">●</span> Evidence files imported
+00308:         </div>
+00309:         <div style="margin:12px 0;color:#d5e2ee;font-size:.82rem">
+00310:           <span style="color:#ffc979">●</span> Nemotron link pending
+00311:         </div>
+00312:         <div style="margin-top:22px;color:#718699;font-size:.72rem;line-height:1.7">
+00313:           RECORDED TEST DATA<br>
+00314:           No live aircraft feed connected.<br>
+00315:           Beacon tracking is simulated.
+00316:         </div>
+00317:         """,
+00318:         unsafe_allow_html=True,
+00319:     )
+00320: 
+00321: report = read_report()
+00322: metrics = report.get("metrics", {})
+00323: centroid = metrics.get("centroid_error_px", {})
+00324: latency = metrics.get("inference_latency_ms", {})
+00325: confidence = metrics.get("confidence", {})
+00326: 
+00327: c18 = read_csv(DATASETS["C18 Flight Run"])
+00328: trajectory = read_csv(DATASETS["Trajectory Validation"])
+00329: 
+00330: # ---------------- MISSION OVERVIEW ----------------
+00331: if page == "Mission Overview":
+00332:     st.markdown('<div class="sky-eyebrow">AIRBORNE OPTICAL TRACKING / MISSION CONSOLE</div>',
+00333:                 unsafe_allow_html=True)
+00334:     st.markdown('<div class="sky-title">MISSION<br>CONTROL</div>', unsafe_allow_html=True)
+00335: 
+00336:     # SKYTRACK-MISSION-STATUS-PANEL
+00337:     st.markdown("""
+00338:     <div style="
+00339:         display:grid;
+00340:         grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
+00341:         gap:10px;
+00342:         margin:18px 0 22px 0;
+00343:         font-family:Inter,Arial,sans-serif;
+00344:     ">
+00345:       <div style="
+00346:           background:linear-gradient(135deg,#101e2b,#0b131d);
+00347:           border:1px solid #244154;
+00348:           border-left:3px solid #37d6e8;
+00349:           border-radius:8px;
+00350:           padding:14px 16px;
+00351:       ">
+00352:         <div style="font-size:10px;letter-spacing:1.8px;color:#8ba8ba">
+00353:           ENVIRONMENT
+00354:         </div>
+00355:         <div style="font-size:16px;font-weight:700;color:#e8f7ff;margin-top:7px">
+00356:           SIMULATION
+00357:         </div>
+00358:         <div style="font-size:11px;color:#7f9aac;margin-top:5px">
+00359:           Recorded research run
+00360:         </div>
+00361:       </div>
+00362:       <div style="
+00363:           background:linear-gradient(135deg,#101e2b,#0b131d);
+00364:           border:1px solid #244154;
+00365:           border-left:3px solid #37d6e8;
+00366:           border-radius:8px;
+00367:           padding:14px 16px;
+00368:       ">
+00369:         <div style="font-size:10px;letter-spacing:1.8px;color:#8ba8ba">
+00370:           TRACKING REFERENCE
+00371:         </div>
+00372:         <div style="font-size:16px;font-weight:700;color:#e8f7ff;margin-top:7px">
+00373:           OPTICAL BEACON
+00374:         </div>
+00375:         <div style="font-size:11px;color:#7f9aac;margin-top:5px">
+00376:           Virtual reference target
+00377:         </div>
+00378:       </div>
+00379:       <div style="
+00380:           background:linear-gradient(135deg,#101e2b,#0b131d);
+00381:           border:1px solid #244154;
+00382:           border-left:3px solid #54d6a0;
+00383:           border-radius:8px;
+00384:           padding:14px 16px;
+00385:       ">
+00386:         <div style="font-size:10px;letter-spacing:1.8px;color:#8ba8ba">
+00387:           EVIDENCE
+00388:         </div>
+00389:         <div style="font-size:16px;font-weight:700;color:#e8f7ff;margin-top:7px">
+00390:           DATA LOADED
+00391:         </div>
+00392:         <div style="font-size:11px;color:#7f9aac;margin-top:5px">
+00393:           Saved measurements
+00394:         </div>
+00395:       </div>
+00396:     </div>
+00397:     <div style="
+00398:         border:1px solid #493d25;
+00399:         background:#19170f;
+00400:         border-radius:6px;
+00401:         padding:10px 13px;
+00402:         color:#d8bd80;
+00403:         font-size:11px;
+00404:         letter-spacing:.3px;
+00405:         margin-bottom:14px;
+00406:     ">
+00407:       <strong>MISSION NOTE //</strong>
+00408:       The fighter-jet scene provides aviation context.
+00409:       The simulated controller tracks a virtual optical beacon;
+00410:       this dashboard is not a live aircraft tracking system.
+00411:     </div>
+00412:     """, unsafe_allow_html=True)
+00413: 
+00414:     # SKYTRACK-JET-TELEMETRY-LAYOUT
+00415:     st.markdown("""
+00416:     <style>
+00417:     .sky-hero {
+00418:         position: relative;
+00419:         overflow: hidden;
+00420:         border: 1px solid #23475b;
+00421:         border-radius: 12px;
+00422:         min-height: 300px;
+00423:         padding: 24px;
+00424:         background:
+00425:           radial-gradient(ellipse at 73% 48%, rgba(20,135,177,.22), transparent 38%),
+00426:           linear-gradient(125deg, #0c1723 0%, #101e2d 52%, #07111a 100%);
+00427:         box-shadow: inset 0 0 50px rgba(36,170,210,.04);
+00428:     }
+00429:     .sky-hero:before {
+00430:         content: "";
+00431:         position: absolute;
+00432:         inset: 0;
+00433:         background-image:
+00434:           linear-gradient(rgba(54,153,186,.07) 1px, transparent 1px),
+00435:           linear-gradient(90deg, rgba(54,153,186,.07) 1px, transparent 1px);
+00436:         background-size: 32px 32px;
+00437:         pointer-events: none;
+00438:     }
+00439:     .sky-hero-content {position:relative;z-index:1}
+00440:     .sky-kicker {
+00441:         color:#52d8ed;font:10px monospace;letter-spacing:2px;
+00442:     }
+00443:     .sky-hero-title {
+00444:         color:#e8f6ff;font-size:clamp(24px,3vw,38px);
+00445:         font-weight:800;line-height:1.05;margin-top:12px;
+00446:     }
+00447:     .sky-hero-copy {
+00448:         color:#8ca8bb;font-size:12px;line-height:1.7;
+00449:         max-width:460px;margin-top:12px;
+00450:     }
+00451:     .sky-hud-row {
+00452:         display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;
+00453:     }
+00454:     .sky-hud-tag {
+00455:         padding:7px 9px;border:1px solid #28495b;
+00456:         border-radius:4px;color:#b6d5e5;
+00457:         background:rgba(8,20,31,.72);
+00458:         font:9px monospace;letter-spacing:.7px;
+00459:     }
+00460:     .sky-jet-mark {
+00461:         position:absolute;right:5%;top:18%;
+00462:         width:42%;height:65%;opacity:.82;
+00463:     }
+00464:     .sky-jet-mark svg {width:100%;height:100%}
+00465:     .sky-telemetry {
+00466:         border:1px solid #203d50;border-radius:10px;
+00467:         background:linear-gradient(150deg,#101e2a,#0a121c);
+00468:         padding:16px 17px;margin-bottom:10px;
+00469:     }
+00470:     .sky-telemetry-label {
+00471:         font:10px monospace;letter-spacing:1.5px;color:#82a0b4;
+00472:     }
+00473:     .sky-telemetry-value {
+00474:         color:#e8f7ff;font-size:25px;font-weight:750;
+00475:         margin-top:7px;line-height:1.2;
+00476:     }
+00477:     .sky-telemetry-note {font-size:11px;color:#829bac;margin-top:5px}
+00478:     .sky-section-label {
+00479:         font:10px monospace;letter-spacing:1.8px;color:#4fd8e9;
+00480:         margin:18px 0 10px 0;
+00481:     }
+00482:     </style>
+00483:     """, unsafe_allow_html=True)
+00484: 
+00485:     hero_left, hero_right = st.columns([1.65, 1], gap="medium")
+00486: 
+00487:     with hero_left:
+00488:         st.markdown("""
+00489:         <div class="sky-hero">
+00490:           <div class="sky-hero-content">
+00491:             <div class="sky-kicker">SKYTRACK // AIRBORNE SYSTEMS</div>
+00492:             <div class="sky-hero-title">OPTICAL<br>TRACKING CONSOLE</div>
+00493:             <div class="sky-hero-copy">
+00494:               Fighter-jet mission environment with a virtual optical beacon
+00495:               as the simulated tracking reference.
+00496:             </div>
+00497:             <div class="sky-hud-row">
+00498:               <span class="sky-hud-tag">MODE / SIMULATION</span>
+00499:               <span class="sky-hud-tag">TARGET / VIRTUAL BEACON</span>
+00500:               <span class="sky-hud-tag">SOURCE / RECORDED DATA</span>
+00501:             </div>
+00502:           </div>
+00503:           <div class="sky-jet-mark">
+00504:             <svg viewBox="0 0 420 300" xmlns="http://www.w3.org/2000/svg"
+00505:                  role="img" aria-label="Stylized fighter jet silhouette">
+00506:               <defs>
+00507:                 <linearGradient id="jetMetal" x1="0" y1="0" x2="1" y2="1">
+00508:                   <stop offset="0%" stop-color="#9cecff"/>
+00509:                   <stop offset="45%" stop-color="#3986a8"/>
+00510:                   <stop offset="100%" stop-color="#18384d"/>
+00511:                 </linearGradient>
+00512:               </defs>
+00513:               <g fill="none" stroke="#3ad9ed" stroke-width="1" opacity=".45">
+00514:                 <circle cx="230" cy="148" r="105"/>
+00515:                 <circle cx="230" cy="148" r="78" stroke-dasharray="3 8"/>
+00516:                 <path d="M230 25V270 M105 148H355"/>
+00517:                 <path d="M125 53L335 243 M335 53L125 243" opacity=".4"/>
+00518:               </g>
+00519:               <path d="M232 24
+00520:                        L246 92 L330 151 L332 164
+00521:                        L253 143 L244 211 L279 239
+00522:                        L278 250 L232 231 L186 250
+00523:                        L185 239 L220 211 L211 143
+00524:                        L132 164 L134 151 L218 92 Z"
+00525:                     fill="url(#jetMetal)" stroke="#a5efff" stroke-width="1.5"/>
+00526:               <path d="M232 43 L238 116 L232 193 L226 116 Z"
+00527:                     fill="#d2f8ff" opacity=".65"/>
+00528:               <path d="M217 145 L232 168 L247 145"
+00529:                     fill="none" stroke="#0a2637" stroke-width="3"/>
+00530:               <circle cx="232" cy="118" r="4" fill="#5af2ff"/>
+00531:               <g stroke="#59d9ee" stroke-width="1.5">
+00532:                 <path d="M232 8V28 M232 268V289 M92 148H112 M352 148H372"/>
+00533:               </g>
+00534:             </svg>
+00535:           </div>
+00536:         </div>
+00537:         """, unsafe_allow_html=True)
+00538: 
+00539:     # The right column uses conservative, evidence-grounded status labels.
+00540:     with hero_right:
+00541:         st.markdown('<div class="sky-section-label">SYSTEM TELEMETRY / STATUS</div>',
+00542:                     unsafe_allow_html=True)
+00543:         st.markdown("""
+00544:         <div class="sky-telemetry">
+00545:           <div class="sky-telemetry-label">TRACKING MODE</div>
+00546:           <div class="sky-telemetry-value">VIRTUAL</div>
+00547:           <div class="sky-telemetry-note">Beacon reference tracking</div>
+00548:         </div>
+00549:         <div class="sky-telemetry">
+00550:           <div class="sky-telemetry-label">DATA SOURCE</div>
+00551:           <div class="sky-telemetry-value">RECORDED</div>
+00552:           <div class="sky-telemetry-note">Saved experiment evidence</div>
+00553:         </div>
+00554:         <div class="sky-telemetry">
+00555:           <div class="sky-telemetry-label">MISSION LINK</div>
+00556:           <div class="sky-telemetry-value" style="font-size:19px;color:#58d8a5">
+00557:             LOCAL DEMO
+00558:           </div>
+00559:           <div class="sky-telemetry-note">No live aircraft connection</div>
+00560:         </div>
+00561:         """, unsafe_allow_html=True)
+00562: 
+00563:     st.markdown(
+00564:         '<div class="sky-section-label">PERFORMANCE EVIDENCE / VALIDATED RESULTS BELOW</div>',
+00565:         unsafe_allow_html=True,
+00566:     )
+00567:     st.markdown(
+00568:         '<div class="sky-subtitle">Virtual-camera alignment and optical-beacon tracking '
+00569:         'in an airborne jet scene.</div>',
+00570:         unsafe_allow_html=True,
+00571:     )
+00572: 
+00573:     st.markdown("<div style='height:17px'></div>", unsafe_allow_html=True)
+00574: 
+00575:     a, b, c, d = st.columns(4)
+00576:     a.metric("DETECTOR MODEL", "READY" if MODEL.exists() else "MISSING",
+00577:              "Saved weights available" if MODEL.exists() else "Weights not found")
+00578:     b.metric("FLIGHT DEMO", "READY" if VIDEO.exists() else "MISSING",
+00579:              "Recorded visualization")
+00580:     c.metric("MEAN CENTROID ERROR",
+00581:              f"{centroid['mean']:.3f} px" if "mean" in centroid else "N/A",
+00582:              "Saved coordinate comparison")
+00583:     d.metric("DETECTOR LATENCY",
+00584:              f"{latency['mean']:.1f} ms" if "mean" in latency else "N/A",
+00585:              "Mean recorded inference time")
+00586: 
+00587:     st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+00588: 
+00589:     left, right = st.columns([1.75, 1], gap="large")
+00590: 
+00591:     with left:
+00592:         st.markdown('<div class="sky-eyebrow">01 / AIRBORNE VISUALIZATION</div>',
+00593:                     unsafe_allow_html=True)
+00594:         st.subheader("JET ENVIRONMENT // RECORDED RUN")
+00595:         if VIDEO.exists():
+00596:             st.video(str(VIDEO))
+00597:         else:
+00598:             st.warning("The recorded demonstration video was not found.")
+00599: 
+00600:         st.markdown(
+00601:             "<span class='sky-warn'>RECORDED FOOTAGE — NOT A LIVE FEED</span>",
+00602:             unsafe_allow_html=True,
+00603:         )
+00604: 
+00605:     with right:
+00606:         st.markdown('<div class="sky-eyebrow">02 / TRACKING TELEMETRY</div>',
+00607:                     unsafe_allow_html=True)
+00608:         st.subheader("OPTICAL SYSTEM")
+00609: 
+00610:         metric_card(
+00611:             "DETECTOR CONFIDENCE",
+00612:             f"{confidence['mean']:.3f}" if "mean" in confidence else "N/A",
+00613:             "Mean saved YOLO confidence",
+00614:         )
+00615:         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+00616:         metric_card(
+00617:             "CENTROID WITHIN 2 PX",
+00618:             f"{centroid['within_2px_percent']:.1f}%"
+00619:             if "within_2px_percent" in centroid else "N/A",
+00620:             "Against saved ground truth",
+00621:         )
+00622:         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+00623:         metric_card(
+00624:             "TRAJECTORY CASES",
+00625:             str(len(trajectory)) if trajectory is not None else "N/A",
+00626:             "Imported validation records",
+00627:         )
+00628: 
+00629:         st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+00630:         st.markdown("**SYSTEM NOTES**")
+00631:         st.caption("• Virtual airborne environment")
+00632:         st.caption("• Optical beacon is the tracked reference")
+00633:         st.caption("• Saved data, not live inference")
+00634:         st.caption("• Nemotron integration not connected")
+00635: 
+00636:     st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+00637:     st.markdown('<div class="sky-eyebrow">03 / MISSION SUMMARY</div>',
+00638:                 unsafe_allow_html=True)
+00639:     st.subheader("Current system capabilities")
+00640: 
+00641:     caps = st.columns(3)
+00642:     with caps[0]:
+00643:         metric_card("VISION", "YOLO", "Beacon detection model artifact")
+00644:     with caps[1]:
+00645:         metric_card("EVALUATION", "5 PATHS", "Recorded trajectory validation")
+00646:     with caps[2]:
+00647:         metric_card("AI ENGINEER", "LOCAL", "Evidence-based diagnostics; no LLM yet")
+00648: 
+00649: # ---------------- OPTICAL TRACKING LAB ----------------
+00650: elif page == "Optical Tracking Lab":
+00651:     st.markdown('<div class="sky-eyebrow">LAB / 02</div>', unsafe_allow_html=True)
+00652:     st.title("Optical Tracking Lab")
+00653:     st.caption("Inspect detector measurements and saved tracking data.")
+00654: 
+00655:     if c18 is None:
+00656:         st.error("C18 metrics CSV was not found.")
+00657:     else:
+00658:         st.markdown(f"**Loaded:** {len(c18)} frames · {len(c18.columns)} fields")
+00659:         numeric = list(c18.select_dtypes(include="number").columns)
+00660: 
+00661:         if numeric:
+00662:             selected = st.selectbox("Telemetry signal", numeric)
+00663:             x_col = "Time (s)" if "Time (s)" in c18.columns else None
+00664: 
+00665:             plot_data = c18.copy()
+00666:             plot_data[selected] = pd.to_numeric(plot_data[selected], errors="coerce")
+00667:             plot_data = plot_data.dropna(subset=[selected])
+00668: 
+00669:             if x_col:
+00670:                 fig = px.line(
+00671:                     plot_data, x=x_col, y=selected,
+00672:                     title=f"RECORDED TELEMETRY / {selected}",
+00673:                 )
+00674:             else:
+00675:                 fig = px.line(
+00676:                     plot_data, y=selected,
+00677:                     title=f"RECORDED TELEMETRY / {selected}",
+00678:                 )
+00679: 
+00680:             st.plotly_chart(chart_theme(fig), use_container_width=True)
+00681: 
+00682:         st.subheader("Frame records")
+00683:         st.dataframe(c18, use_container_width=True, hide_index=True, height=370)
+00684: 
+00685:         st.download_button(
+00686:             "Export current CSV",
+00687:             data=c18.to_csv(index=False).encode("utf-8"),
+00688:             file_name="skytrack_c18_metrics.csv",
+00689:             mime="text/csv",
+00690:         )
+00691: 
+00692: 
+00693:     st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+00694:     st.markdown(
+00695:         "<div class='sky-eyebrow'>RECORDED EVIDENCE / VIDEO PLAYBACK</div>",
+00696:         unsafe_allow_html=True,
+00697:     )
+00698:     st.subheader("Optical Tracking Demonstration")
+00699:     st.caption(
+00700:         "Recorded 10-second demonstration. This is not a live aircraft feed."
+00701:     )
+00702:     # OPTICAL LAB VIDEO PANEL
+00703:     if VIDEO.exists():
+00704:         st.video(str(VIDEO), format="video/mp4", start_time=0)
+00705:     else:
+00706:         st.error("The H.264 demonstration video is missing.")
+00707:     
+00708: # ---------------- FLIGHT ANALYTICS ----------------
+00709: elif page == "Flight Analytics":
+00710:     st.markdown('<div class="sky-eyebrow">ANALYTICS / 03</div>',
+00711:                 unsafe_allow_html=True)
+00712:     st.title("Flight & Tracking Analytics")
+00713:     st.caption("Comparisons are based on the saved validation dataset.")
+00714: 
+00715:     if trajectory is None or trajectory.empty:
+00716:         st.error("Trajectory validation CSV is unavailable.")
+00717:     else:
+00718:         st.subheader("Trajectory comparison")
+00719:         metric_options = [
+00720:             c for c in trajectory.columns
+00721:             if pd.api.types.is_numeric_dtype(trajectory[c])
+00722:         ]
+00723:         if metric_options:
+00724:             selected_metric = st.selectbox("Performance metric", metric_options)
+00725:             fig = px.bar(
+00726:                 trajectory,
+00727:                 x="Trajectory",
+00728:                 y=selected_metric,
+00729:                 title=f"RECORDED PERFORMANCE / {selected_metric}",
+00730:                 text_auto=".3f",
+00731:             )
+00732:             st.plotly_chart(chart_theme(fig, 390), use_container_width=True)
+00733: 
+00734:         st.subheader("Validation records")
+00735:         st.dataframe(trajectory, use_container_width=True, hide_index=True)
+00736: 
+00737:         st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+00738:         st.subheader("Detector error distribution")
+00739: 
+00740:         err_path = PROJECT / "results/reports/c18_derived_centroid_errors.csv"
+00741:         errors = read_csv(err_path)
+00742: 
+00743:         if errors is not None and "centroid_error_px" in errors.columns:
+00744:             fig = px.histogram(
+00745:                 errors,
+00746:                 x="centroid_error_px",
+00747:                 nbins=25,
+00748:                 title="RECORDED CENTROID ERROR / PIXELS",
+00749:             )
+00750:             st.plotly_chart(chart_theme(fig), use_container_width=True)
+00751:         else:
+00752:             st.info("Run the evidence diagnostics cell to generate the error distribution.")
+00753: 
+00754: 
+00755: # ---------------- AI MISSION ENGINEER ----------------
+00756: elif page == "AI Mission Engineer":
+00757:     import importlib.util
+00758:     import json
+00759: 
+00760:     st.markdown(
+00761:         '<div class="sky-eyebrow">ENGINEERING ASSISTANT / 04</div>',
+00762:         unsafe_allow_html=True,
+00763:     )
+00764:     st.title("AI Mission Engineer")
+00765:     st.caption(
+00766:         "Evidence-aware diagnostics for the FSOC SkyTrack AI research prototype."
+00767:     )
+00768: 
+00769:     # Workstation header
+00770:     st.markdown("""
+00771:     <div style="
+00772:         background:linear-gradient(120deg,#101e2b,#0a121c);
+00773:         border:1px solid #244154;border-left:3px solid #35d6e8;
+00774:         border-radius:10px;padding:18px 20px;margin:12px 0 18px 0;
+00775:     ">
+00776:       <div style="font:10px monospace;letter-spacing:2px;color:#54d8eb">
+00777:         ENGINE STATUS / DUAL ANALYSIS
+00778:       </div>
+00779:       <div style="font-size:23px;font-weight:750;color:#e8f7ff;margin-top:8px">
+00780:         Mission Diagnostics Workstation
+00781:       </div>
+00782:       <div style="font-size:12px;line-height:1.7;color:#92aabc;margin-top:7px">
+00783:         Analyze saved project evidence using either the local evidence engine
+00784:         or NVIDIA Nemotron through Nebius Token Factory. External model
+00785:         requests require valid credentials and network access.
+00786:         Results remain subject to verification against source evidence.
+00787:       </div>
+00788:     </div>
+00789:     """, unsafe_allow_html=True)
+00790: 
+00791:     previous_ai_result = st.session_state.get("skytrack_ai_last_result", {})
+00792:     previous_ai_mode = str(
+00793:         previous_ai_result.get("mode", "mock")
+00794:     ).lower() if isinstance(previous_ai_result, dict) else "mock"
+00795: 
+00796:     if previous_ai_mode == "nebius":
+00797:         analysis_mode_label = "NEMOTRON"
+00798:         analysis_mode_note = "Nebius-hosted NVIDIA model"
+00799:     else:
+00800:         analysis_mode_label = "LOCAL"
+00801:         analysis_mode_note = "Evidence-grounded local engine"
+00802: 
+00803:     c1, c2, c3 = st.columns(3)
+00804:     with c1:
+00805:         st.markdown(f"""
+00806:         <div class="sky-telemetry">
+00807:           <div class="sky-telemetry-label">ANALYSIS MODE</div>
+00808:           <div class="sky-telemetry-value" style="font-size:19px">{analysis_mode_label}</div>
+00809:           <div class="sky-telemetry-note">{analysis_mode_note}</div>
+00810:         </div>
+00811:         """, unsafe_allow_html=True)
+00812:     with c2:
+00813:         st.markdown("""
+00814:         <div class="sky-telemetry">
+00815:           <div class="sky-telemetry-label">EVIDENCE</div>
+00816:           <div class="sky-telemetry-value" style="font-size:19px">SAVED FILES</div>
+00817:           <div class="sky-telemetry-note">Reports and trajectory records</div>
+00818:         </div>
+00819:         """, unsafe_allow_html=True)
+00820:     with c3:
+00821:         if previous_ai_mode == "nebius":
+00822:             nemotron_status = "CONNECTED"
+00823:             nemotron_color = "#74edbd"
+00824:             nemotron_note = "Last Nebius request succeeded"
+00825:         else:
+00826:             nemotron_status = "READY TO TEST"
+00827:             nemotron_color = "#d8bd80"
+00828:             nemotron_note = "No successful Nebius response yet"
+00829: 
+00830:         st.markdown(f"""
+00831:         <div class="sky-telemetry">
+00832:           <div class="sky-telemetry-label">NEMOTRON LINK</div>
+00833:           <div class="sky-telemetry-value"
+00834:                style="font-size:19px;color:{nemotron_color}">
+00835:             {nemotron_status}
+00836:           </div>
+00837:           <div class="sky-telemetry-note">{nemotron_note}</div>
+00838:         </div>
+00839:         """, unsafe_allow_html=True)
+00840: 
+00841:     st.markdown(
+00842:         '<div class="sky-section-label">01 / ENGINEERING QUERY</div>',
+00843:         unsafe_allow_html=True,
+00844:     )
+00845: 
+00846:     quick_options = {
+00847:         "Choose a diagnostic": "",
+00848:         "Detector centroid accuracy": (
+00849:             "Summarize detector centroid accuracy and explain its limitations."
+00850:         ),
+00851:         "Trajectory RMSE comparison": (
+00852:             "Compare trajectory RMSE and flag unusual results."
+00853:         ),
+00854:         "Inference latency": (
+00855:             "Explain saved inference latency and the correct interpretation of FPS."
+00856:         ),
+00857:         "Engineering risks to verify": (
+00858:             "Flag unusual results and list engineering checks to perform."
+00859:         ),
+00860:     }
+00861: 
+00862:     with st.form("skytrack_engineering_query", clear_on_submit=False):
+00863:         ai_mode_label = st.radio(
+00864:             "Analysis engine",
+00865:             ["Local evidence engine", "NVIDIA Nemotron via Nebius"],
+00866:             horizontal=True,
+00867:             key="sky_ai_engine_mode",
+00868:             help=(
+00869:                 "Local mode uses the saved evidence-grounded engine. "
+00870:                 "Nemotron mode requires secure Nebius API configuration."
+00871:             ),
+00872:         )
+00873:         selected = st.selectbox(
+00874:             "Diagnostic preset",
+00875:             list(quick_options.keys()),
+00876:             key="sky_ai_preset",
+00877:         )
+00878:         question = st.text_area(
+00879:             "Ask an engineering question",
+00880:             placeholder=(
+00881:                 "Example: Why should I verify the figure-eight RMSE "
+00882:                 "before making a performance claim?"
+00883:             ),
+00884:             height=105,
+00885:             key="sky_ai_question",
+00886:         )
+00887:         submitted = st.form_submit_button(
+00888:             "Run engineering analysis",
+00889:             use_container_width=True,
+00890:         )
+00891: 
+00892:     if submitted:
+00893:         user_question = question.strip() or quick_options.get(selected, "")
+00894: 
+00895:         if not user_question:
+00896:             st.warning("Enter a question or select a diagnostic preset.")
+00897:         else:
+00898:             try:
+00899:                 spec = importlib.util.spec_from_file_location(
+00900:                     "skytrack_copilot_engine", str(ENGINE)
+00901:                 )
+00902:                 if spec is None or spec.loader is None:
+00903:                     raise RuntimeError("Could not load the local copilot engine.")
+00904: 
+00905:                 engine = importlib.util.module_from_spec(spec)
+00906:                 spec.loader.exec_module(engine)
+00907: 
+00908:                 selected_mode = (
+00909:                     "nebius"
+00910:                     if ai_mode_label == "NVIDIA Nemotron via Nebius"
+00911:                     else "mock"
+00912:                 )
+00913:                 result = engine.ask_copilot(
+00914:                     user_question,
+00915:                     mode=selected_mode,
+00916:                 )
+00917: 
+00918:                 st.session_state["skytrack_ai_last_result"] = result
+00919:                 st.session_state["skytrack_ai_last_question"] = user_question
+00920: 
+00921:             except Exception as exc:
+00922:                 st.error(
+00923:                     "The local analysis could not be completed. "
+00924:                     "Check that the evidence files exist and are readable."
+00925:                 )
+00926:                 st.code(f"{type(exc).__name__}: {exc}")
+00927: 
+00928:     result = st.session_state.get("skytrack_ai_last_result")
+00929: 
+00930:     if result:
+00931:         st.markdown(
+00932:             '<div class="sky-section-label">02 / ANALYSIS OUTPUT</div>',
+00933:             unsafe_allow_html=True,
+00934:         )
+00935: 
+00936:         response_mode = str(result.get("mode", "mock")).lower()
+00937:         response_label = (
+00938:             "NVIDIA NEMOTRON / NEBIUS RESPONSE"
+00939:             if response_mode == "nebius"
+00940:             else "LOCAL EVIDENCE ENGINE RESPONSE"
+00941:         )
+00942: 
+00943:         st.markdown(f"""
+00944:         <div style="
+00945:             border:1px solid #25465a;border-radius:9px;
+00946:             background:#0c1722;padding:16px 18px;
+00947:         ">
+00948:           <div style="font:10px monospace;letter-spacing:1.5px;color:#50d9eb">
+00949:             {response_label}
+00950:           </div>
+00951:         </div>
+00952:         """, unsafe_allow_html=True)
+00953: 
+00954:         # Render the answer using Streamlit's safe Markdown renderer.
+00955:         # Keep quality flags separate from the main response.
+00956:         answer_text = str(
+00957:             result.get("answer") or "No answer was returned."
+00958:         )
+00959: 
+00960:         # Normalize literal escaped newlines from model output.
+00961:         # Handle one or more backslashes before the letter n.
+00962:         import re
+00963:         answer_text = re.sub(r"\\+n", "\n", answer_text)
+00964:         answer_text = answer_text.replace("\\r", "")
+00965: 
+00966:         normal_lines = []
+00967:         warning_lines = []
+00968: 
+00969:         for line in answer_text.splitlines():
+00970:             if "QUALITY FLAG:" in line:
+00971:                 before, _, warning_text = line.partition("QUALITY FLAG:")
+00972:                 if before.strip():
+00973:                     normal_lines.append(before.strip())
+00974:                 if warning_text.strip():
+00975:                     warning_lines.append(warning_text.strip())
+00976:             else:
+00977:                 normal_lines.append(line)
+00978: 
+00979:         normal_text = "\n".join(normal_lines).strip()
+00980: 
+00981:         if normal_text:
+00982:             st.markdown(
+00983:                 """
+00984:                 <style>
+00985:                 .skytrack-answer {
+00986:                     background: #0c1722;
+00987:                     border: 1px solid #25465a;
+00988:                     border-radius: 9px;
+00989:                     padding: 12px 18px;
+00990:                     color: #d8e5ee;
+00991:                     line-height: 1.7;
+00992:                 }
+00993:                 .skytrack-answer h1,
+00994:                 .skytrack-answer h2,
+00995:                 .skytrack-answer h3 {
+00996:                     color: #50d9eb;
+00997:                 }
+00998:                 </style>
+00999:                 """,
+01000:                 unsafe_allow_html=True,
+01001:             )
+01002: 
+01003:             # Markdown is rendered normally; model text is not inserted
+01004:             # into an unsafe HTML string.
+01005:             with st.container(border=True):
+01006:                 st.markdown(normal_text)
+01007: 
+01008:         import html
+01009: 
+01010:         warning = result.get("warning")
+01011:         if warning:
+01012:             st.info(warning)
+01013: 
+01014:         provider = result.get("provider", "Local engine")
+01015:         mode = result.get("mode", "mock")
+01016:         st.caption(f"Execution mode: {mode} · Provider: {provider}")
+01017: 
+01018:         # STEP 54C — DETERMINISTIC EVIDENCE AUDIT
+01019:         # STEP 56B — STRUCTURED AUDIT DASHBOARD
+01020:         with st.expander("Deterministic evidence audit", expanded=False):
+01021:             st.caption(
+01022:                 "Read-only consistency checks against saved project evidence. "
+01023:                 "REVIEW findings require investigation and are not proven failures."
+01024:             )
+01025: 
+01026:             try:
+01027:                 audit_findings = result.get("audit_findings", [])
+01028:                 audit_summary = result.get("audit_summary", "")
+01029: 
+01030:                 # Fallback for older results that predate Step 55C.
+01031:                 if not audit_findings:
+01032:                     import importlib.util
+01033: 
+01034:                     auditor_path = PROJECT / "ai_agent" / "evidence_auditor.py"
+01035:                     spec = importlib.util.spec_from_file_location(
+01036:                         "skytrack_dashboard_auditor", auditor_path
+01037:                     )
+01038:                     if spec is None or spec.loader is None:
+01039:                         raise ImportError("Could not load the evidence auditor.")
+01040: 
+01041:                     auditor_module = importlib.util.module_from_spec(spec)
+01042:                     spec.loader.exec_module(auditor_module)
+01043:                     audit_result = auditor_module.run_evidence_audit(PROJECT)
+01044:                     audit_findings = audit_result.get("findings", [])
+01045:                     audit_summary = (
+01046:                         f"Checks: {len(audit_findings)} | "
+01047:                         f"Read-only: {audit_result.get('read_only', True)}"
+01048:                     )
+01049: 
+01050:                 passed_count = sum(
+01051:                     1 for item in audit_findings
+01052:                     if item.get("severity") == "PASS"
+01053:                 )
+01054:                 review_count = sum(
+01055:                     1 for item in audit_findings
+01056:                     if item.get("severity") == "REVIEW"
+01057:                 )
+01058: 
+01059:                 metric_cols = st.columns(3)
+01060:                 metric_cols[0].metric("Total checks", len(audit_findings))
+01061:                 metric_cols[1].metric("PASS", passed_count)
+01062:                 metric_cols[2].metric("REVIEW", review_count)
+01063: 
+01064:                 if audit_summary:
+01065:                     st.caption(str(audit_summary).splitlines()[0])
+01066: 
+01067:                 if not audit_findings:
+01068:                     st.warning("No deterministic audit findings were returned.")
+01069: 
+01070:                 for index, finding in enumerate(audit_findings):
+01071:                     severity = str(finding.get("severity", "UNKNOWN")).upper()
+01072:                     code = str(finding.get("code", "UNNAMED_CHECK"))
+01073:                     message = str(finding.get("message", ""))
+01074: 
+01075:                     heading = f"{severity} · {code}"
+01076:                     if severity == "PASS":
+01077:                         st.success(f"**{heading}** — {message}")
+01078:                     elif severity == "REVIEW":
+01079:                         st.warning(f"**{heading}** — {message}")
+01080:                     else:
+01081:                         st.info(f"**{heading}** — {message}")
+01082: 
+01083:                     details = finding.get("details")
+01084:                     if details:
+01085:                         with st.expander(
+01086:                             f"Diagnostic details · {code} · {index + 1}",
+01087:                             expanded=False,
+01088:                         ):
+01089:                             st.json(details)
+01090: 
+01091:                 st.caption(
+01092:                     "These checks verify specific data-consistency conditions. "
+01093:                     "They do not independently establish scientific validity."
+01094:                 )
+01095: 
+01096:             except Exception as audit_error:
+01097:                 st.warning(
+01098:                     "The deterministic evidence audit could not be displayed. "
+01099:                     "The Copilot response remains available."
+01100:                 )
+01101:                 st.caption(
+01102:                     f"Audit diagnostic: {type(audit_error).__name__}: "
+01103:                     f"{audit_error}"
+01104:                 )
+01105: 
+01106:         with st.expander("Evidence sources and provenance", expanded=True):
+01107:             evidence_files = result.get("evidence_files", [])
+01108:             if evidence_files:
+01109:                 for item in evidence_files:
+01110:                     path = Path(item)
+01111:                     exists = path.is_file()
+01112:                     st.write(
+01113:                         f"{'AVAILABLE' if exists else 'MISSING'} — `{item}`"
+01114:                     )
+01115:             else:
+01116:                 st.write(
+01117:                     "The engine did not return an explicit evidence-file list."
+01118:                 )
+01119: 
+01120:         with st.expander("Engineering checks to keep in view"):
+01121:             st.markdown("""
+01122:             - Verify the unusually low figure-eight RMSE against its source data.
+01123:             - Investigate the straight trajectory's high maximum error.
+01124:             - Keep detector centroid error separate from closed-loop tracking error.
+01125:             - Do not treat reciprocal detector latency as end-to-end control-loop FPS.
+01126:             - Compare experiments only when their conditions and metrics are compatible.
+01127:             """)
+01128: 
+01129:     else:
+01130:         st.markdown(
+01131:             '<div class="sky-section-label">02 / READY FOR QUERY</div>',
+01132:             unsafe_allow_html=True,
+01133:         )
+01134:         st.info(
+01135:             "Choose a diagnostic or enter an engineering question to inspect "
+01136:             "the saved project evidence."
+01137:         )
+01138: 
+01139:     st.markdown(
+01140:         '<div class="sky-section-label">03 / MODEL INTEGRATION STATUS</div>',
+01141:         unsafe_allow_html=True,
+01142:     )
+01143:     st.markdown("""
+01144:     <div style="
+01145:         background:#0c1722;border:1px solid #25465a;
+01146:         border-radius:8px;padding:14px 16px;color:#b9cddd;
+01147:         font-size:12px;line-height:1.7;
+01148:     ">
+01149:       <strong style="color:#50d9eb">
+01150:         NVIDIA Nemotron / Nebius: CONFIGURABLE
+01151:       </strong><br>
+01152:       Select the local evidence engine or NVIDIA Nemotron via Nebius
+01153:       in the Mission Engineer form. Nebius requests require valid API
+01154:       credentials and model configuration in the Streamlit process.<br>
+01155:       This dashboard uses saved experimental evidence and does not
+01156:       connect to a live aircraft feed or claim live aircraft tracking.
+01157:     </div>
+01158:     """, unsafe_allow_html=True)
+01159: 
+01160:     st.markdown(
+01161:         "<div class='sky-divider'></div>",
+01162:         unsafe_allow_html=True,
+01163:     )
+01164: 
+01165: 
+01166: # ---------------- SYSTEM ARCHITECTURE ----------------
+01167: elif page == "System Architecture":
+01168:     st.markdown('<div class="sky-eyebrow">SYSTEM / 05</div>',
+01169:                 unsafe_allow_html=True)
+01170:     st.title("System Architecture")
+01171:     if ARCH.exists():
+01172:         st.image(str(ARCH), use_container_width=True)
+01173:     else:
+01174:         st.warning("Architecture image not found.")
+01175: 
+01176:     st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+01177:     st.markdown("""
+01178:     **Current project boundaries**
+01179:     - Airborne jet scene is a visualization.
+01180:     - The simulated optical beacon is the tracked reference.
+01181:     - Saved results are historical experimental evidence.
+01182:     - The dashboard does not claim a live aircraft feed.
+01183:     - Nemotron is available as a configurable Nebius integration.
+01184:     """)
+01185: 
+01186: # ---------------- ASSET REGISTRY ----------------
+01187: elif page == "Asset Registry":
+01188:     st.markdown('<div class="sky-eyebrow">INVENTORY / 06</div>',
+01189:                 unsafe_allow_html=True)
+01190:     st.title("Asset Registry")
+01191: 
+01192:     inventory = [
+01193:         ("Beacon detector weights", MODEL),
+01194:         ("Recorded airborne demonstration", VIDEO),
+01195:         ("System architecture", ARCH),
+01196:         ("Diagnostic JSON report", REPORT),
+01197:     ] + [(name, path) for name, path in DATASETS.items()]
+01198: 
+01199:     rows = []
+01200:     for name, path in inventory:
+01201:         rows.append({
+01202:             "Asset": name,
+01203:             "Status": "AVAILABLE" if path.is_file() else "MISSING",
+01204:             "Size (MB)": round(path.stat().st_size / (1024 * 1024), 3)
+01205:                 if path.is_file() else None,
+01206:             "File": str(path),
+01207:         })
+01208: 
+01209:     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+01210: 
+01211:     if VIDEO.exists():
+01212:         st.subheader("Demonstration playback")
+01213:         st.video(str(VIDEO))
+01214: 
+01215: st.markdown("<div class='sky-divider'></div>", unsafe_allow_html=True)
+01216: st.markdown(
+01217:     '<div style="font-family:IBM Plex Mono;color:#637d90;font-size:.68rem;'
+01218:     'letter-spacing:1px">SKYTRACK AI // FSOC RESEARCH PROTOTYPE // '
+01219:     'RECORDED EVIDENCE IS NOT A LIVE FEED</div>',
+01220:     unsafe_allow_html=True,
+01221: )

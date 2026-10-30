@@ -1,0 +1,2138 @@
+STEP 113 — CANDIDATE BENCHMARK SOURCE AUDIT
+Notebook: /content/drive/MyDrive/Colab Notebooks/Virtual_Camera_Tracking.ipynb
+Notebook SHA256: 1e67f3bb5e3dfba56221dc4cf97163820ad5e7034d2e568d78370cd24887b391
+Cell count: 369
+
+====================================================================================================
+CELL 43 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+# ============================================================
+# TARGET TRAJECTORY ENGINE
+# ============================================================
+
+class TargetMotion:
+
+    def __init__(
+        self,
+        motion_type="straight"
+    ):
+
+        self.motion_type = motion_type
+
+        self.t = 0.0
+
+        self.center_x = 1000
+        self.center_y = 1000
+
+        self.radius_x = 300
+        self.radius_y = 200
+
+        self.speed = 1.0
+
+        self.x = 700
+        self.y = 1000
+
+        self.vx = 2
+        self.vy = 1
+
+    def update(self):
+
+        self.t += 1 / FPS
+
+        # ------------------------------------
+        # STRAIGHT
+        # ------------------------------------
+
+        if self.motion_type == "straight":
+
+            self.x += self.vx
+
+            if self.x < 200 or self.x > 1800:
+                self.vx *= -1
+
+        # ------------------------------------
+        # CIRCULAR
+        # ------------------------------------
+
+        elif self.motion_type == "circular":
+
+            self.x = (
+                self.center_x +
+                self.radius_x *
+                np.cos(self.speed * self.t)
+            )
+
+            self.y = (
+                self.center_y +
+                self.radius_y *
+                np.sin(self.speed * self.t)
+            )
+
+        # ------------------------------------
+        # FIGURE 8
+        # ------------------------------------
+
+        elif self.motion_type == "figure8":
+
+            self.x = (
+                self.center_x +
+                self.radius_x *
+                np.sin(self.speed * self.t)
+            )
+
+            self.y = (
+                self.center_y +
+                self.radius_y *
+                np.sin(
+                    self.speed *
+                    self.t
+                ) *
+                np.cos(
+                    self.speed *
+                    self.t
+                )
+            )
+
+        # ------------------------------------
+        # RANDOM
+        # ------------------------------------
+
+        elif self.motion_type == "random":
+
+            self.x += self.vx
+            self.y += self.vy
+
+            if self.x < 200 or self.x > 1800:
+                self.vx *= -1
+
+            if self.y < 200 or self.y > 1800:
+                self.vy *= -1
+
+        return self.x, self.y
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 49 | execution_count=None | saved_outputs=1
+----------------------------------------------------------------------------------------------------
+# ============================================================
+# PERFORMANCE METRICS
+# ============================================================
+
+valid_errors = [
+    e for e in history
+    if e is not None
+]
+
+if len(valid_errors) > 0:
+
+    errors = np.array(
+        valid_errors
+    )
+
+    average_error = np.mean(
+        errors
+    )
+
+    maximum_error = np.max(
+        errors
+    )
+
+    rmse = np.sqrt(
+        np.mean(
+            errors ** 2
+        )
+    )
+
+    tracking_success = (
+        errors <= 10
+    )
+
+    lock_rate = (
+        np.sum(tracking_success) /
+        len(errors)
+    ) * 100
+
+    print("================================")
+    print("FSOC TRACKING PERFORMANCE")
+    print("================================")
+
+    print(
+        f"Average Error : "
+        f"{average_error:.2f} pixels"
+    )
+
+    print(
+        f"Maximum Error : "
+        f"{maximum_error:.2f} pixels"
+    )
+
+    print(
+        f"RMSE          : "
+        f"{rmse:.2f} pixels"
+    )
+
+    print(
+        f"Lock Rate     : "
+        f"{lock_rate:.2f}%"
+    )
+
+    print("================================")
+
+SAVED OUTPUTS:
+  Output 0: type=stream
+================================
+FSOC TRACKING PERFORMANCE
+================================
+Average Error : 8.08 pixels
+Maximum Error : 297.45 pixels
+RMSE          : 33.94 pixels
+Lock Rate     : 96.67%
+================================
+
+
+====================================================================================================
+CELL 65 | execution_count=None | saved_outputs=1
+----------------------------------------------------------------------------------------------------
+motion_types = [
+    "straight",
+    "circular",
+    "figure8",
+    "random"
+]
+
+results = {}
+
+for motion_type in motion_types:
+
+    print(
+        "\nRunning:",
+        motion_type
+    )
+
+    target = TargetMotion(
+        motion_type
+    )
+
+    # Reset camera
+
+    camera_x = 1000.0
+    camera_y = 1000.0
+
+    # Reset PID
+
+    pan_pid = PIDController(
+        kp=1.2,
+        ki=0.02,
+        kd=0.15,
+        output_limit=MAX_PAN_SPEED
+    )
+
+    tilt_pid = PIDController(
+        kp=1.2,
+        ki=0.02,
+        kd=0.15,
+        output_limit=MAX_TILT_SPEED
+    )
+
+    errors = []
+
+    for frame_number in range(300):
+
+        # Target
+
+        beacon_x, beacon_y = \
+            target.update()
+
+        # World
+
+        world = generate_world(
+            beacon_x,
+            beacon_y
+        )
+
+        # Camera
+
+        camera_frame = get_camera_frame(
+            world,
+            camera_x,
+            camera_y
+        )
+
+        # Detection
+
+        detection = detect_beacon(
+            camera_frame
+        )
+
+        if detection is not None:
+
+            target_x, target_y = detection
+
+            error_x = (
+                target_x -
+                CAMERA_WIDTH / 2
+            )
+
+            error_y = (
+                target_y -
+                CAMERA_HEIGHT / 2
+            )
+
+            error = math.sqrt(
+                error_x ** 2 +
+                error_y ** 2
+            )
+
+            errors.append(error)
+
+            # PID
+
+            pan_change, tilt_change, \
+            _, _ = update_camera_with_pid(
+                error_x,
+                error_y,
+                pan_pid,
+                tilt_pid
+            )
+
+            camera_x, camera_y = \
+                apply_camera_motion(
+                    camera_x,
+                    camera_y,
+                    pan_change,
+                    tilt_change
+                )
+
+    # Metrics
+
+    errors = np.array(errors)
+
+    results[motion_type] = {
+
+        "average_error":
+            np.mean(errors),
+
+        "maximum_error":
+            np.max(errors),
+
+        "rmse":
+            np.sqrt(
+                np.mean(
+                    errors ** 2
+                )
+            ),
+
+        "lock_rate":
+            np.mean(
+                errors <= 10
+            ) * 100
+    }
+
+print("\n==============================")
+print("TRAJECTORY BENCHMARK")
+print("==============================")
+
+for motion, metrics in results.items():
+
+    print(
+        f"\n{motion.upper()}"
+    )
+
+    print(
+        f"Average Error: "
+        f"{metrics['average_error']:.2f}px"
+    )
+
+    print(
+        f"Maximum Error: "
+        f"{metrics['maximum_error']:.2f}px"
+    )
+
+    print(
+        f"RMSE: "
+        f"{metrics['rmse']:.2f}px"
+    )
+
+    print(
+        f"Lock Rate: "
+        f"{metrics['lock_rate']:.2f}%"
+    )
+
+SAVED OUTPUTS:
+  Output 0: type=stream
+
+Running: straight
+
+Running: circular
+
+Running: figure8
+
+Running: random
+
+==============================
+TRAJECTORY BENCHMARK
+==============================
+
+STRAIGHT
+Average Error: 54.92px
+Maximum Error: 298.00px
+RMSE: 69.03px
+Lock Rate: 3.67%
+
+CIRCULAR
+Average Error: 152.06px
+Maximum Error: 299.80px
+RMSE: 155.06px
+Lock Rate: 0.00%
+
+FIGURE8
+Average Error: 125.97px
+Maximum Error: 199.74px
+RMSE: 133.44px
+Lock Rate: 0.00%
+
+RANDOM
+Average Error: 60.47px
+Maximum Error: 298.00px
+RMSE: 72.38px
+Lock Rate: 0.00%
+
+
+====================================================================================================
+CELL 148 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+tracking_errors = np.array(tracking_errors)
+
+average_error = np.mean(tracking_errors)
+maximum_error = np.max(tracking_errors)
+rmse = np.sqrt(
+    np.mean(tracking_errors ** 2)
+)
+
+lock_rate = (
+    np.mean(tracking_errors <= 10) * 100
+)
+
+detection_rate = (
+    np.mean(detections) * 100
+)
+
+print("========== FSOC AI TRACKING RESULTS ==========")
+
+print(f"Average Error : {average_error:.2f} px")
+print(f"Maximum Error : {maximum_error:.2f} px")
+print(f"RMSE          : {rmse:.2f} px")
+print(f"Lock Rate     : {lock_rate:.2f}%")
+print(f"Detection Rate: {detection_rate:.2f}%")
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 183 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+def run_tracking_test(
+    motion_type,
+    duration=30
+):
+
+    target = TargetMotion(
+        motion_type=motion_type,
+        speed=120
+    )
+
+    camera = VirtualCamera()
+
+    controller = WorldCameraController(
+        kp=0.8,
+        ki=0.01,
+        kd=0.1,
+        max_speed=5.0
+    )
+
+    errors = []
+
+    total_frames = int(
+        duration * FPS
+    )
+
+    for _ in range(total_frames):
+
+        target_x, target_y = target.update(DT)
+
+        px, py = get_target_pixel(
+            target_x,
+            target_y,
+            camera
+        )
+
+        error_x = px - CAM_W / 2
+        error_y = py - CAM_H / 2
+
+        pan, tilt = controller.update(
+            error_x,
+            error_y,
+            DT
+        )
+
+        move_camera(
+            camera,
+            pan,
+            tilt,
+            DT
+        )
+
+        error = np.sqrt(
+            error_x**2 +
+            error_y**2
+        )
+
+        errors.append(error)
+
+    errors = np.array(errors)
+
+    return {
+        "Trajectory": motion_type,
+        "Average Error (px)": np.mean(errors),
+        "Maximum Error (px)": np.max(errors),
+        "RMSE (px)": np.sqrt(
+            np.mean(errors**2)
+        ),
+        "Lock Rate (%)":
+            np.mean(errors <= 10) * 100
+    }
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 205 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+target = TargetMotion(
+    motion_type="figure8",
+    speed=120
+)
+
+camera = VirtualCamera()
+
+controller = FSOCController()
+
+errors = []
+states = []
+
+for frame_number in range(900):
+
+    # -------------------------------
+    # Target motion
+    # -------------------------------
+
+    tx, ty = target.update(DT)
+
+    # -------------------------------
+    # World
+    # -------------------------------
+
+    world = render_world(
+        tx,
+        ty
+    )
+
+    # -------------------------------
+    # Camera
+    # -------------------------------
+
+    frame = camera.capture(
+        world
+    )
+
+    # -------------------------------
+    # Disturbances
+    # -------------------------------
+
+    frame = apply_disturbances(
+        frame,
+        MODERATE
+    )
+
+    # -------------------------------
+    # AI detection
+    # -------------------------------
+
+    detection = ai_detect_beacon(
+        ai_model,
+        frame
+    )
+
+    # -------------------------------
+    # Controller
+    # -------------------------------
+
+    state, pan, tilt = controller.update(
+        detection,
+        camera,
+        DT
+    )
+
+    states.append(state)
+
+    # -------------------------------
+    # Actual target error
+    # -------------------------------
+
+    px, py = get_target_pixel(
+        tx,
+        ty,
+        camera
+    )
+
+    error = np.sqrt(
+        (px - CAM_W / 2)**2 +
+        (py - CAM_H / 2)**2
+    )
+
+    errors.append(error)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 206 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+errors = np.array(errors)
+
+lock_rate = (
+    np.mean(errors <= 10) * 100
+)
+
+target_loss = (
+    np.mean(errors > 10) * 100
+)
+
+rmse = np.sqrt(
+    np.mean(errors**2)
+)
+
+print("==========================================")
+print("       FSOC COARSE ALIGNMENT TEST")
+print("==========================================")
+
+print(
+    f"Average Error : {np.mean(errors):.2f} px"
+)
+
+print(
+    f"Maximum Error : {np.max(errors):.2f} px"
+)
+
+print(
+    f"RMSE          : {rmse:.2f} px"
+)
+
+print(
+    f"≤10 px Lock   : {lock_rate:.2f}%"
+)
+
+print(
+    f"Error >10 px  : {target_loss:.2f}%"
+)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 222 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+pan_rates = []
+tilt_rates = []
+
+camera = AngularCamera()
+
+pid = AngularPID(
+    max_output=5.0
+)
+
+target = TargetMotion(
+    motion_type="figure8",
+    speed=120
+)
+
+for frame in range(900):
+
+    tx, ty = target.update(DT)
+
+    target_pan, target_tilt = target_angles(
+        tx,
+        ty,
+        camera
+    )
+
+    error_pan = target_pan - camera.pan
+    error_tilt = target_tilt - camera.tilt
+
+    pan_rate, tilt_rate = pid.update(
+        error_pan,
+        error_tilt,
+        DT
+    )
+
+    camera.move(
+        pan_rate,
+        tilt_rate,
+        DT
+    )
+
+    pan_rates.append(pan_rate)
+    tilt_rates.append(tilt_rate)
+
+print(
+    "Maximum pan rate:",
+    max(abs(np.array(pan_rates)))
+)
+
+print(
+    "Maximum tilt rate:",
+    max(abs(np.array(tilt_rates)))
+)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 231 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+camera = AngularCamera()
+
+target = TargetMotion(
+    motion_type="figure8",
+    speed=120
+)
+
+disturbance = PlatformDisturbance(
+    platform_type="linear",
+    platform_max=20,
+    jitter_max=20
+)
+
+disturbance_history = []
+
+for i in range(900):
+
+    tx, ty = target.update(DT)
+
+    ex, ey, ax, ay = disturbance.update(
+        tx,
+        ty,
+        camera,
+        DT
+    )
+
+    disturbance_history.append(
+        (ex, ey)
+    )
+
+disturbance_history = np.array(
+    disturbance_history
+)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 236 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+errors = np.array(errors)
+
+print("==========================================")
+print(" PLATFORM MOTION TRACKING TEST")
+print("==========================================")
+
+print(
+    f"Average Error : "
+    f"{np.mean(errors):.2f} px"
+)
+
+print(
+    f"Maximum Error : "
+    f"{np.max(errors):.2f} px"
+)
+
+print(
+    f"RMSE          : "
+    f"{np.sqrt(np.mean(errors**2)):.2f} px"
+)
+
+print(
+    f"≤10 px Lock   : "
+    f"{np.mean(errors <= 10)*100:.2f}%"
+)
+
+print(
+    f"Max Pan Rate  : "
+    f"{np.max(np.abs(pan_rates)):.2f} °/s"
+)
+
+print(
+    f"Max Tilt Rate : "
+    f"{np.max(np.abs(tilt_rates)):.2f} °/s"
+)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 239 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+platform_results = []
+
+for motion_type in platform_types:
+
+    camera = AngularCamera()
+
+    pid = AngularPID(
+        kp=1.2,
+        ki=0.02,
+        kd=0.15,
+        max_output=5.0
+    )
+
+    target = TargetMotion(
+        motion_type="figure8",
+        speed=120
+    )
+
+    disturbance = PlatformDisturbance(
+        platform_type=motion_type,
+        platform_max=20,
+        jitter_max=20
+    )
+
+    test_errors = []
+
+    for frame in range(900):
+
+        tx, ty = target.update(DT)
+
+        (
+            ex,
+            ey,
+            target_pan,
+            target_tilt
+        ) = disturbance.update(
+            tx,
+            ty,
+            camera,
+            DT
+        )
+
+        error_pan = (
+            target_pan -
+            camera.pan
+        )
+
+        error_tilt = (
+            target_tilt -
+            camera.tilt
+        )
+
+        pan, tilt = pid.update(
+            error_pan,
+            error_tilt,
+            DT
+        )
+
+        camera.move(
+            pan,
+            tilt,
+            DT
+        )
+
+        px_error = (
+            error_pan /
+            camera.hfov *
+            camera.width
+        )
+
+        py_error = (
+            error_tilt /
+            camera.vfov *
+            camera.height
+        )
+
+        test_errors.append(
+            np.sqrt(
+                px_error**2 +
+                py_error**2
+            )
+        )
+
+    test_errors = np.array(
+        test_errors
+    )
+
+    platform_results.append({
+        "Platform Motion": motion_type,
+        "Average Error (px)": np.mean(
+            test_errors
+        ),
+        "RMSE (px)": np.sqrt(
+            np.mean(test_errors**2)
+        ),
+        "Max Error (px)": np.max(
+            test_errors
+        ),
+        "Lock Rate (%)": np.mean(
+            test_errors <= 10
+        ) * 100
+    })
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 254 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+target = TargetMotion(
+    motion_type="figure8",
+    speed=80
+)
+
+camera = AngularCamera()
+
+tracker = IntegratedFSOCTracker()
+
+dropout_ranges = [
+    (100, 110),
+    (200, 215)
+]
+
+errors = []
+states = []
+detected_history = []
+
+for frame_number in range(300):
+
+    tx, ty = target.update(DT)
+
+    world = render_world_with_target(
+        tx,
+        ty
+    )
+
+    frame = camera.capture(
+        world
+    )
+
+    detection = ai_detect_beacon(
+        ai_model,
+        frame,
+        confidence_threshold=0.20
+    )
+
+    # Force temporary detection loss
+    detection = force_detection_dropout(
+        detection,
+        frame_number,
+        dropout_ranges
+    )
+
+    result = tracker.update(
+        detection,
+        camera,
+        DT
+    )
+
+    states.append(
+        result["state"]
+    )
+
+    detected_history.append(
+        result["detected"]
+    )
+
+    # Ground truth
+    target_pan, target_tilt = (
+        target_angles(
+            tx,
+            ty,
+            camera
+        )
+    )
+
+    error_pan = (
+        target_pan -
+        camera.pan
+    )
+
+    error_tilt = (
+        target_tilt -
+        camera.tilt
+    )
+
+    px_error = (
+        error_pan /
+        camera.hfov *
+        camera.width
+    )
+
+    py_error = (
+        error_tilt /
+        camera.vfov *
+        camera.height
+    )
+
+    errors.append(
+        np.sqrt(
+            px_error**2 +
+            py_error**2
+        )
+    )
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 268 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+camera = AngularCamera()
+
+controller = FPAController(
+    kp=1.0,
+    ki=0.01,
+    kd=0.12,
+    max_rate=5.0
+)
+
+target = TargetMotion(
+    motion_type="circular",
+    speed=80
+)
+
+tracking_error = []
+camera_pan = []
+target_pan_history = []
+
+for frame in range(900):
+
+    # Target moves
+    tx, ty = target.update(DT)
+
+    # True target location on FPA
+    px, py = world_to_fpa(
+        tx,
+        ty,
+        camera
+    )
+
+    if beacon_visible(px, py, camera):
+
+        # Simulated AI detection
+        detection = (
+            px,
+            py,
+            0.95
+        )
+
+    else:
+
+        detection = None
+
+    # Controller
+    pan_rate, tilt_rate = controller.update(
+        detection,
+        camera,
+        DT
+    )
+
+    # Camera movement
+    camera.move(
+        pan_rate,
+        tilt_rate,
+        DT
+    )
+
+    # Ground truth error
+    px2, py2 = world_to_fpa(
+        tx,
+        ty,
+        camera
+    )
+
+    error = np.sqrt(
+        (px2 - camera.width / 2)**2 +
+        (py2 - camera.height / 2)**2
+    )
+
+    tracking_error.append(error)
+
+    camera_pan.append(
+        camera.pan
+    )
+
+    target_pan, _ = target_angles(
+        tx,
+        ty,
+        camera
+    )
+
+    target_pan_history.append(
+        target_pan
+    )
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 269 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+tracking_error = np.array(
+    tracking_error
+)
+
+print("===================================")
+print(" PROPER FPA CLOSED-LOOP TRACKING")
+print("===================================")
+
+print(
+    f"Average Error : "
+    f"{np.mean(tracking_error):.2f} px"
+)
+
+print(
+    f"Maximum Error : "
+    f"{np.max(tracking_error):.2f} px"
+)
+
+print(
+    f"RMSE          : "
+    f"{np.sqrt(np.mean(tracking_error**2)):.2f} px"
+)
+
+print(
+    f"≤10 px Lock   : "
+    f"{np.mean(tracking_error <= 10)*100:.2f}%"
+)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 277 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+# PROPER FPA TRACKING TEST
+
+camera = AngularCamera()
+
+target = TargetMotion(
+    motion_type="circular",
+    speed=40
+)
+
+controller = FPAController(
+    kp=1.0,
+    ki=0.01,
+    kd=0.12,
+    max_rate=5.0
+)
+
+# Initial acquisition
+tx, ty = target.update(DT)
+
+initial_pan, initial_tilt = target_angles(
+    tx,
+    ty,
+    camera
+)
+
+camera.pan = initial_pan
+camera.tilt = initial_tilt
+
+tracking_error = []
+pan_history = []
+tilt_history = []
+
+for frame in range(900):
+
+    # Target movement
+    tx, ty = target.update(DT)
+
+    # Target position on FPA
+    px, py = world_to_fpa(
+        tx,
+        ty,
+        camera
+    )
+
+    # Simulated detection
+    if beacon_visible(px, py, camera):
+
+        detection = (
+            px,
+            py,
+            0.95
+        )
+
+    else:
+
+        detection = None
+
+    # PID controller
+    pan_rate, tilt_rate = controller.update(
+        detection,
+        camera,
+        DT
+    )
+
+    # Move camera
+    camera.move(
+        pan_rate,
+        tilt_rate,
+        DT
+    )
+
+    # Ground truth FPA error
+    px2, py2 = world_to_fpa(
+        tx,
+        ty,
+        camera
+    )
+
+    error = np.sqrt(
+        (px2 - camera.width / 2)**2 +
+        (py2 - camera.height / 2)**2
+    )
+
+    tracking_error.append(error)
+
+    pan_history.append(
+        camera.pan
+    )
+
+    tilt_history.append(
+        camera.tilt
+    )
+
+print("Tracking test completed.")
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 278 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+tracking_error = np.array(
+    tracking_error
+)
+
+print("===================================")
+print(" FIXED FPA CLOSED-LOOP TRACKING")
+print("===================================")
+
+print(
+    f"Average Error : "
+    f"{np.mean(tracking_error):.2f} px"
+)
+
+print(
+    f"Maximum Error : "
+    f"{np.max(tracking_error):.2f} px"
+)
+
+print(
+    f"RMSE          : "
+    f"{np.sqrt(np.mean(tracking_error**2)):.2f} px"
+)
+
+print(
+    f"≤10 px Lock   : "
+    f"{np.mean(tracking_error <= 10)*100:.2f}%"
+)
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 289 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+# ============================================================
+# STEP 21 — CORRECT FPA CONTROLLER TEST
+# Uses existing FPAController interface
+# ============================================================
+
+# Reset camera
+camera.pan = 0.0
+camera.tilt = 0.0
+
+# Create target
+target = TargetMotion()
+
+# Try to configure circular motion
+if hasattr(target, "trajectory_type"):
+    target.trajectory_type = "circular"
+
+if hasattr(target, "mode"):
+    target.mode = "circular"
+
+# Configure available parameters
+for attr, value in [
+    ("center_x", 1000),
+    ("center_y", 1000),
+    ("radius", 250),
+    ("speed", 20)
+]:
+    if hasattr(target, attr):
+        setattr(target, attr, value)
+
+# Existing FPA controller
+controller = FPAController()
+
+errors = []
+camera_positions = []
+
+MAX_SPEED = 5.0
+
+for frame_id in range(300):
+
+    # --------------------------------------------------------
+    # Target movement
+    # --------------------------------------------------------
+
+    tx, ty = target.update(DT)
+
+    # --------------------------------------------------------
+    # Project target into FPA
+    # --------------------------------------------------------
+
+    px, py = world_to_fpa(
+        tx,
+        ty,
+        camera
+    )
+
+    # Pixel error
+    error_x = px - camera.width / 2
+    error_y = py - camera.height / 2
+
+    total_error = np.sqrt(
+        error_x**2 + error_y**2
+    )
+
+    errors.append(total_error)
+
+    camera_positions.append(
+        (camera.pan, camera.tilt)
+    )
+
+    # --------------------------------------------------------
+    # Create detection in the format expected by controller
+    # --------------------------------------------------------
+
+    if beacon_visible(px, py, camera):
+
+        detection = (
+            px,
+            py,
+            1.0
+        )
+
+        # ----------------------------------------------------
+        # Controller expects:
+        # update(detection, camera, dt)
+        # ----------------------------------------------------
+
+        pan_command, tilt_command = controller.update(
+            detection,
+            camera,
+            DT
+        )
+
+        # ----------------------------------------------------
+        # Enforce maximum pan/tilt speed
+        # ----------------------------------------------------
+
+        pan_command = np.clip(
+            pan_command,
+            -MAX_SPEED,
+            MAX_SPEED
+        )
+
+        tilt_command = np.clip(
+            tilt_command,
+            -MAX_SPEED,
+            MAX_SPEED
+        )
+
+        # Move camera
+        camera.move(
+            pan_command,
+            tilt_command,
+            DT
+        )
+
+# ============================================================
+# RESULTS
+# ============================================================
+
+print("CORRECTED FPA CONTROLLER TEST")
+print("=" * 50)
+
+print(f"Initial Error : {errors[0]:.2f} px")
+print(f"Final Error   : {errors[-1]:.2f} px")
+print(f"Minimum Error : {min(errors):.2f} px")
+print(f"Average Error : {np.mean(errors):.2f} px")
+print(f"Maximum Error : {max(errors):.2f} px")
+
+lock_frames = sum(
+    e <= 10
+    for e in errors
+)
+
+lock_rate = (
+    100 * lock_frames / len(errors)
+)
+
+print(f"≤10 px Lock   : {lock_rate:.2f}%")
+
+SAVED OUTPUTS:
+
+====================================================================================================
+CELL 333 | execution_count=None | saved_outputs=0
+----------------------------------------------------------------------------------------------------
+# ============================================================
+# STEP 53H: CORRECTED MULTI-TRAJECTORY TRACKING BENCHMARK
+# ============================================================
+
+import time
+import numpy as np
+import pandas as pd
+
+# ------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------
+
+TEST_DURATION = 20.0
+
+FPS_CONTROL = 30
+DT_CONTROL = 1.0 / FPS_CONTROL
+
+YOLO_FPS = 10
+YOLO_INTERVAL = 3
+
+LOCK_THRESHOLD = 10.0
+
+MEASUREMENT_NOISE_STD = 2.0
+
+KP_ANGLE = 6.0
+KV_ANGLE = 1.0
+
+RANGE = 1000.0
+
+TRAJECTORIES_53H = [
+    "straight",
+    "circular",
+    "figure8",
+    "spiral",
+    "random"
+]
+
+TARGET_SPEED = FAIR_TARGET_SPEED
+
+# ------------------------------------------------------------
+# YOLO single-inference function
+# ------------------------------------------------------------
+
+def detect_yolo_once_53h(frame):
+
+    results = yolo_model(
+        frame,
+        verbose=False
+    )
+
+    if not results:
+        return None
+
+    result = results[0]
+
+    if result.boxes is None:
+        return None
+
+    if len(result.boxes) == 0:
+        return None
+
+    confidences = (
+        result.boxes.conf
+        .cpu()
+        .numpy()
+    )
+
+    best_index = int(
+        np.argmax(confidences)
+    )
+
+    confidence = float(
+        confidences[best_index]
+    )
+
+    if confidence < 0.25:
+        return None
+
+    box = (
+        result.boxes.xyxy[best_index]
+        .cpu()
+        .numpy()
+    )
+
+    x1, y1, x2, y2 = box
+
+    cx = (
+        float(x1) + float(x2)
+    ) / 2.0
+
+    cy = (
+        float(y1) + float(y2)
+    ) / 2.0
+
+    return (
+        cx,
+        cy,
+        confidence
+    )
+
+
+# ------------------------------------------------------------
+# Velocity conversion
+# ------------------------------------------------------------
+
+def angular_velocity_53h(
+    target_x,
+    target_y,
+    vx,
+    vy,
+    camera
+):
+
+    dx = target_x - camera.x
+    dy = target_y - camera.y
+
+    pan_den = (
+        RANGE**2
+        + dx**2
+    )
+
+    tilt_den = (
+        RANGE**2
+        + dy**2
+    )
+
+    vx_angle = (
+        RANGE * vx / pan_den
+    ) * (180.0 / np.pi)
+
+    vy_angle = (
+        RANGE * vy / tilt_den
+    ) * (180.0 / np.pi)
+
+    return vx_angle, vy_angle
+
+
+# ------------------------------------------------------------
+# Single trajectory benchmark
+# ------------------------------------------------------------
+
+def benchmark_trajectory_53h(
+    motion_type
+):
+
+    total_frames = int(
+        TEST_DURATION
+        * FPS_CONTROL
+    )
+
+    # ========================================================
+    # CAMERA
+    # ========================================================
+
+    camera = AngularCamera()
+
+    camera.width = 640
+    camera.height = 480
+
+    camera.hfov = 4.0
+    camera.vfov = 3.0
+
+    camera.max_pan_speed = 5.0
+    camera.max_tilt_speed = 5.0
+
+    camera.x = 1000.0
+    camera.y = 1000.0
+
+    camera.pan = 0.0
+    camera.tilt = 0.0
+
+
+    # ========================================================
+    # TARGET
+    # ========================================================
+
+    target = BoundedTarget(
+        motion_type=motion_type,
+        center=FAIR_CENTER,
+        amplitude_x=FAIR_AMPLITUDE_X,
+        amplitude_y=FAIR_AMPLITUDE_Y,
+        speed=TARGET_SPEED
+    )
+
+
+    # ========================================================
+    # KALMAN
+    # ========================================================
+
+    kf = create_kalman()
+
+    kalman_initialized = False
+
+
+    # ========================================================
+    # PERSISTENT SEARCH CONTROLLER
+    # ========================================================
+
+    search = RasterSearchController(
+        pan_range=(-8.0, 8.0),
+        tilt_range=(-6.0, 6.0),
+        pan_step=2.0,
+        tilt_step=1.5,
+        speed=5.0
+    )
+
+    search.reset(camera)
+
+
+    # ========================================================
+    # METRICS
+    # ========================================================
+
+    errors = []
+
+    detection_errors = []
+
+    detection_count = 0
+    vision_frames = 0
+
+    visible_frames = 0
+
+    prediction_frames = 0
+
+    lock_count = 0
+
+    miss_count = 0
+
+    current_miss = 0
+    max_miss = 0
+
+    start_time = time.time()
+
+
+    # ========================================================
+    # MAIN LOOP
+    # ========================================================
+
+    for frame_id in range(total_frames):
+
+        # ----------------------------------------------------
+        # TARGET UPDATE
+        # ----------------------------------------------------
+
+        target_x, target_y = target.update(
+            DT_CONTROL
+        )
+
+
+        # ----------------------------------------------------
+        # RENDER FPA
+        # ----------------------------------------------------
+
+        frame, true_px, true_py = (
+            render_consistent_fpa(
+                target_x,
+                target_y,
+                camera,
+                beacon_size=10
+            )
+        )
+
+        visible = beacon_visible(
+            true_px,
+            true_py,
+            camera
+        )
+
+        if visible:
+            visible_frames += 1
+
+
+        detection = None
+
+
+        # ====================================================
+        # YOLO — 10 Hz
+        # ====================================================
+
+        if frame_id % YOLO_INTERVAL == 0:
+
+            vision_frames += 1
+
+            if visible:
+
+                detection = detect_yolo_once_53h(
+                    frame
+                )
+
+
+            # ------------------------------------------------
+            # DETECTION
+            # ------------------------------------------------
+
+            if detection is not None:
+
+                detection_count += 1
+
+                current_miss = 0
+
+                det_x, det_y, confidence = (
+                    detection
+                )
+
+
+                # --------------------------------------------
+                # Pixel detection accuracy
+                # --------------------------------------------
+
+                det_error = np.sqrt(
+                    (det_x - true_px)**2
+                    +
+                    (det_y - true_py)**2
+                )
+
+                detection_errors.append(
+                    det_error
+                )
+
+
+                # --------------------------------------------
+                # FPA -> world coordinates
+                # --------------------------------------------
+
+                angular_error_x = (
+                    (det_x - camera.width / 2)
+                    * camera.hfov
+                    / camera.width
+                )
+
+                angular_error_y = (
+                    (det_y - camera.height / 2)
+                    * camera.vfov
+                    / camera.height
+                )
+
+
+                measured_x = (
+                    camera.x
+                    +
+                    np.tan(
+                        np.radians(
+                            camera.pan
+                            + angular_error_x
+                        )
+                    )
+                    * RANGE
+                )
+
+                measured_y = (
+                    camera.y
+                    +
+                    np.tan(
+                        np.radians(
+                            camera.tilt
+                            + angular_error_y
+                        )
+                    )
+                    * RANGE
+                )
+
+
+                # --------------------------------------------
+                # Measurement noise
+                # --------------------------------------------
+
+                measured_x += np.random.normal(
+                    0,
+                    MEASUREMENT_NOISE_STD
+                )
+
+                measured_y += np.random.normal(
+                    0,
+                    MEASUREMENT_NOISE_STD
+                )
+
+
+                # --------------------------------------------
+                # Kalman initialization
+                # --------------------------------------------
+
+                if not kalman_initialized:
+
+                    kf.x = np.array([
+                        [measured_x],
+                        [measured_y],
+                        [0.0],
+                        [0.0]
+                    ])
+
+                    kalman_initialized = True
+
+                else:
+
+                    kf.predict()
+
+                    kf.update([
+                        measured_x,
+                        measured_y
+                    ])
+
+
+            # ------------------------------------------------
+            # MISS
+            # ------------------------------------------------
+
+            else:
+
+                miss_count += 1
+
+                current_miss += 1
+
+                max_miss = max(
+                    max_miss,
+                    current_miss
+                )
+
+                if kalman_initialized:
+
+                    kf.predict()
+
+
+        # ====================================================
+        # BETWEEN YOLO FRAMES
+        # ====================================================
+
+        else:
+
+            if kalman_initialized:
+
+                kf.predict()
+
+                prediction_frames += 1
+
+
+        # ====================================================
+        # CONTROL
+        # ====================================================
+
+        if kalman_initialized:
+
+            estimated_x = float(
+                kf.x[0, 0]
+            )
+
+            estimated_y = float(
+                kf.x[1, 0]
+            )
+
+            estimated_vx = float(
+                kf.x[2, 0]
+            )
+
+            estimated_vy = float(
+                kf.x[3, 0]
+            )
+
+
+            # ----------------------------------------------
+            # Project prediction
+            # ----------------------------------------------
+
+            pred_px, pred_py = world_to_fpa(
+                estimated_x,
+                estimated_y,
+                camera
+            )
+
+
+            error_x = (
+                pred_px
+                - camera.width / 2
+            )
+
+            error_y = (
+                pred_py
+                - camera.height / 2
+            )
+
+
+            # ----------------------------------------------
+            # Angular error
+            # ----------------------------------------------
+
+            angular_error_x = (
+                error_x
+                * camera.hfov
+                / camera.width
+            )
+
+            angular_error_y = (
+                error_y
+                * camera.vfov
+                / camera.height
+            )
+
+
+            # ----------------------------------------------
+            # Velocity feed-forward
+            # ----------------------------------------------
+
+            angular_vx, angular_vy = (
+                angular_velocity_53h(
+                    estimated_x,
+                    estimated_y,
+                    estimated_vx,
+                    estimated_vy,
+                    camera
+                )
+            )
+
+
+            # ----------------------------------------------
+            # Predictive controller
+            # ----------------------------------------------
+
+            pan_rate = (
+                KP_ANGLE
+                * angular_error_x
+                +
+                KV_ANGLE
+                * angular_vx
+            )
+
+            tilt_rate = (
+                KP_ANGLE
+                * angular_error_y
+                +
+                KV_ANGLE
+                * angular_vy
+            )
+
+
+            # ----------------------------------------------
+            # Physical limits
+            # ----------------------------------------------
+
+            pan_rate = np.clip(
+                pan_rate,
+                -camera.max_pan_speed,
+                camera.max_pan_speed
+            )
+
+            tilt_rate = np.clip(
+                tilt_rate,
+                -camera.max_tilt_speed,
+                camera.max_tilt_speed
+            )
+
+
+        else:
+
+            # ----------------------------------------------
+            # Acquisition search
+            # ----------------------------------------------
+
+            pan_rate, tilt_rate = (
+                search.update(
+                    camera,
+                    DT_CONTROL
+                )
+            )
+
+
+        # ====================================================
+        # CAMERA UPDATE
+        # ====================================================
+
+        camera.move(
+            pan_rate,
+            tilt_rate,
+            DT_CONTROL
+        )
+
+
+        # ====================================================
+        # TRUE TRACKING ERROR
+        # ====================================================
+
+        actual_px, actual_py = world_to_fpa(
+            target_x,
+            target_y,
+            camera
+        )
+
+        error = np.sqrt(
+            (actual_px - camera.width / 2)**2
+            +
+            (actual_py - camera.height / 2)**2
+        )
+
+        errors.append(error)
+
+
+        if error <= LOCK_THRESHOLD:
+
+            lock_count += 1
+
+
+    # ========================================================
+    # CALCULATE RESULTS
+    # ========================================================
+
+    elapsed = time.time() - start_time
+
+    avg_error = np.mean(errors)
+
+    max_error = np.max(errors)
+
+    final_error = errors[-1]
+
+    lock_percentage = (
+        lock_count
+        /
+        total_frames
+        * 100
+    )
+
+    detection_percentage = (
+        detection_count
+        /
+        max(1, vision_frames)
+        * 100
+    )
+
+    visible_detection_percentage = (
+        detection_count
+        /
+        max(
+            1,
+            int(
+                np.ceil(
+                    visible_frames
+                    /
+                    YOLO_INTERVAL
+                )
+            )
+        )
+        * 100
+    )
+
+    avg_detection_error = (
+        np.mean(detection_errors)
+        if detection_errors
+        else np.nan
+    )
+
+    runtime_fps = (
+        total_frames
+        /
+        elapsed
+    )
+
+
+    return {
+        "Trajectory": motion_type,
+        "Final Error (px)": final_error,
+        "Average Error (px)": avg_error,
+        "Maximum Error (px)": max_error,
+        "Lock <=10px (%)": lock_percentage,
+        "YOLO Detection (%)": detection_percentage,
+        "Visible Detection (%)": visible_detection_percentage,
+        "Avg Detection Error (px)": avg_detection_error,
+        "Visible Frames": visible_frames,
+        "YOLO Frames": vision_frames,
+        "Max Consecutive Miss": max_miss,
+        "Runtime FPS": runtime_fps
+    }
+
+
+# ============================================================
+# RUN ALL TRAJECTORIES
+# ============================================================
+
+print("=" * 70)
+print("STEP 53H: CORRECTED MULTI-TRAJECTORY TRACKING BENCHMARK")
+print("=" * 70)
+
+results_53h = []
+
+for trajectory in TRAJECTORIES_53H:
+
+    print()
+    print(
+        f"Running: {trajectory.upper()} ..."
+    )
+
+    result = benchmark_trajectory_53h(
+        trajectory
+    )
+
+    results_53h.append(
+        result
+    )
+
+    print(
+        f"  Final Error : "
+        f"{result['Final Error (px)']:.2f} px"
+    )
+
+    print(
+        f"  Average     : "
+        f"{result['Average Error (px)']:.2f} px"
+    )
+
+    print(
+        f"  Max Error   : "
+        f"{result['Maximum Error (px)']:.2f} px"
+    )
+
+    print(
+        f"  Lock <=10px : "
+        f"{result['Lock <=10px (%)']:.2f}%"
+    )
+
+    print(
+        f"  YOLO Detect : "
+        f"{result['YOLO Detection (%)']:.2f}%"
+    )
+
+    print(
+        f"  Visible Det : "
+        f"{result['Visible Detection (%)']:.2f}%"
+    )
+
+    print(
+        f"  Runtime FPS : "
+        f"{result['Runtime FPS']:.2f}"
+    )
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+
+results_53h_df = pd.DataFrame(
+    results_53h
+)
+
+print()
+print("=" * 70)
+print("STEP 53H SUMMARY")
+print("=" * 70)
+
+display(
+    results_53h_df.round(2)
+)
+
+print("=" * 70)
+
+SAVED OUTPUTS:

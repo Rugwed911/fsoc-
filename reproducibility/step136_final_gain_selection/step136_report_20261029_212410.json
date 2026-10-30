@@ -1,0 +1,17 @@
+{
+  "step": 136,
+  "source_csv": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step135_actuator_limit_sensitivity/step135_raw_20261029_211928.csv",
+  "source_rows_analyzed": 360,
+  "gains_compared": [
+    10.0,
+    12.0
+  ],
+  "paired_conditions": 6,
+  "outputs": {
+    "overall_paired": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step136_final_gain_selection/step136_overall_paired_20261029_212410.csv",
+    "condition_paired": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step136_final_gain_selection/step136_condition_paired_20261029_212410.csv",
+    "gain_summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step136_final_gain_selection/step136_gain_summary_20261029_212410.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step136_final_gain_selection/step136_gain_comparison_20261029_212410.png"
+  },
+  "interpretation": "Negative KP12-minus-KP10 RMSE differences favor KP12. Positive saturation differences mean KP12 saturates more. Confidence intervals are approximate descriptive intervals; they do not establish hardware performance."
+}

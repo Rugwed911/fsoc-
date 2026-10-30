@@ -1,0 +1,12 @@
+{
+  "step": 130,
+  "source_file": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step129_prediction_horizon/step129_raw_20261029_210237.csv",
+  "rate_limit_deg_s": 5.0,
+  "trial_rows": 300,
+  "outputs": {
+    "summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step130_actuator_demand_audit/step130_demand_summary_20261029_210513.csv",
+    "correlations": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step130_actuator_demand_audit/step130_demand_correlations_20261029_210513.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step130_actuator_demand_audit/step130_demand_audit_20261029_210513.png"
+  },
+  "limitation": "The saved STEP 129 data records maximum controller demand, not the fraction of frames saturated. This audit cannot prove actuator saturation caused tracking error."
+}

@@ -1,0 +1,31 @@
+{
+  "step": 125,
+  "trials_per_condition_per_controller": 30,
+  "trajectory_count": 5,
+  "latency_frames": [
+    0,
+    1,
+    3
+  ],
+  "miss_probabilities": [
+    0.0,
+    0.1,
+    0.2
+  ],
+  "measurement_noise_std_px": 2.0,
+  "historical_sha256_before": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_sha256_after": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_csv_unchanged": true,
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step125_latency_missed_detection/step125_raw_trials_20261029_204646.csv",
+    "condition_summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step125_latency_missed_detection/step125_condition_summary_20261029_204646.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step125_latency_missed_detection/step125_paired_comparison_20261029_204646.csv",
+    "figure8_heatmap": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step125_latency_missed_detection/step125_figure8_latency_heatmap_20261029_204646.png"
+  },
+  "limitations": [
+    "This is a simplified simulation, not hardware validation.",
+    "The controller uses a constant-velocity estimate between detections.",
+    "The camera model uses a fixed pinhole projection and angular actuator limits.",
+    "The approximate confidence intervals are descriptive."
+  ]
+}

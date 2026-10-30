@@ -1,0 +1,71 @@
+{
+  "step": 128,
+  "source_files": [
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_summary_20261029_205437.csv",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step127_all_trajectory_validation/step127_condition_comparison_20261029_205734.csv"
+  ],
+  "source_sha256": {
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_summary_20261029_205437.csv": "53593aa61c5d3fc82bda8989194949f4854d563d5e44053fa5a2423912f1a917",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step127_all_trajectory_validation/step127_condition_comparison_20261029_205734.csv": "6f5d0f9d949bb33afba1b7740c15f859862fb1a77904cca5c2f9860c40b88942"
+  },
+  "worst_predictive_kalman_condition": {
+    "Mode": "kalman_predictive",
+    "Trajectory": "straight",
+    "Latency (frames)": 3,
+    "Miss Probability (%)": 20.0,
+    "Mean RMSE (px)": 15.758443084756744,
+    "Mean Lock (%)": 94.5
+  },
+  "worst_condition_by_trajectory": [
+    {
+      "Trajectory": "straight",
+      "Latency (frames)": 3,
+      "Miss Probability (%)": 20.0,
+      "Mean_RMSE_px": 15.758443084756744,
+      "Mean_Lock_pct": 94.5,
+      "P05_Lock_pct": 94.0
+    },
+    {
+      "Trajectory": "random",
+      "Latency (frames)": 3,
+      "Miss Probability (%)": 20.0,
+      "Mean_RMSE_px": 10.831186780727364,
+      "Mean_Lock_pct": 95.42222222222225,
+      "P05_Lock_pct": 94.66666666666669
+    },
+    {
+      "Trajectory": "circular",
+      "Latency (frames)": 3,
+      "Miss Probability (%)": 20.0,
+      "Mean_RMSE_px": 10.206421076110937,
+      "Mean_Lock_pct": 95.5888888888889,
+      "P05_Lock_pct": 94.81666666666666
+    },
+    {
+      "Trajectory": "spiral",
+      "Latency (frames)": 3,
+      "Miss Probability (%)": 20.0,
+      "Mean_RMSE_px": 4.676931520166941,
+      "Mean_Lock_pct": 96.6888888888889,
+      "P05_Lock_pct": 95.66666666666669
+    },
+    {
+      "Trajectory": "figure8",
+      "Latency (frames)": 3,
+      "Miss Probability (%)": 20.0,
+      "Mean_RMSE_px": 4.07361743336868,
+      "Mean_Lock_pct": 99.5,
+      "P05_Lock_pct": 98.3
+    }
+  ],
+  "outputs": {
+    "worst_modes": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step128_worst_case_analysis/step128_worst_modes_20261029_205926.csv",
+    "latency_degradation": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step128_worst_case_analysis/step128_latency_degradation_20261029_205926.csv",
+    "worst_by_trajectory": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step128_worst_case_analysis/step128_worst_by_trajectory_20261029_205926.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step128_worst_case_analysis/step128_latency_degradation_20261029_205926.png"
+  },
+  "limitations": [
+    "This step analyzes existing simulation outputs only.",
+    "It does not rerun simulations or validate hardware performance."
+  ]
+}

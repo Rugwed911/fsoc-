@@ -1,0 +1,36 @@
+{
+  "step": 127,
+  "source_files": [
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step125_latency_missed_detection/step125_condition_summary_20261029_204646.csv",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_summary_20261029_205437.csv",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_paired_comparison_20261029_205437.csv"
+  ],
+  "source_sha256": {
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step125_latency_missed_detection/step125_condition_summary_20261029_204646.csv": "f8820400efef3c81a84f7855d8942fdbda1c2e814ac04ecd9589af0bb9bf8f2e",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_summary_20261029_205437.csv": "53593aa61c5d3fc82bda8989194949f4854d563d5e44053fa5a2423912f1a917",
+    "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step126_kalman_latency_audit/step126_paired_comparison_20261029_205437.csv": "37db4dfaa71d634eef24ed9cc3d190d94533ae302714cae7882940993f1a38e5"
+  },
+  "condition_count": 45,
+  "trajectory_count": 5,
+  "kf_better_than_baseline_conditions": 45,
+  "total_conditions": 45,
+  "worst_predictive_kf_condition": {
+    "trajectory": "straight",
+    "latency_frames": 3,
+    "miss_probability_pct": 20.0,
+    "mean_rmse_px": 15.758443084756744
+  },
+  "worst_baseline_condition": {
+    "trajectory": "straight",
+    "latency_frames": 3,
+    "miss_probability_pct": 20.0,
+    "mean_rmse_px": 17.73897691809388
+  },
+  "outputs": {
+    "comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step127_all_trajectory_validation/step127_condition_comparison_20261029_205734.csv",
+    "overall_summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step127_all_trajectory_validation/step127_overall_summary_20261029_205734.csv",
+    "paired_evidence_copy": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step127_all_trajectory_validation/step127_paired_evidence_20261029_205734.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step127_all_trajectory_validation/step127_kalman_robustness_20261029_205734.png"
+  },
+  "note": "This is a summary of saved simulation outputs, not hardware validation."
+}

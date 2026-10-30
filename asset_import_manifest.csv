@@ -1,0 +1,7 @@
+asset,status,source
+simulation/models/beacon_detector_best.pt,COPIED,/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/YOLO/runs/fsoc_beacon_detector/weights/best.pt
+results/videos/validated_c18_airborne_demo.mp4,COPIED,/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/airborne_simulation/final_ai_demo/FINAL_AI_IN_LOOP_AIRBORNE_FSOC.mp4
+experiments/baselines/validated_c18_metrics.csv,COPIED,/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/airborne_simulation/final_ai_demo/FINAL_AI_IN_LOOP_AIRBORNE_FSOC.csv
+results/figures/original_system_architecture.png,COPIED,/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/FINAL_EVIDENCE/architecture/FINAL_SYSTEM_ARCHITECTURE_CLEAN.png
+experiments/baselines/yolo_centroid_benchmark.csv,COPIED,/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/yolo_centroid_benchmark.csv
+experiments/baselines/multi_trajectory_validation.csv,COPIED,/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/airborne_simulation/airborne_multi_trajectory_validation.csv

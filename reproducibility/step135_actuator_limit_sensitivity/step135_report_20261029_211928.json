@@ -1,0 +1,35 @@
+{
+  "step": 135,
+  "trials_per_gain_per_condition": 30,
+  "gains": [
+    5.0,
+    10.0,
+    12.0
+  ],
+  "rate_limits_deg_per_s": [
+    3.0,
+    4.0,
+    5.0
+  ],
+  "conditions": [
+    {
+      "latency_frames": 0,
+      "miss_probability": 0.0
+    },
+    {
+      "latency_frames": 3,
+      "miss_probability": 0.2
+    }
+  ],
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step135_actuator_limit_sensitivity/step135_raw_20261029_211928.csv",
+    "summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step135_actuator_limit_sensitivity/step135_summary_20261029_211928.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step135_actuator_limit_sensitivity/step135_paired_20261029_211928.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step135_actuator_limit_sensitivity/step135_rate_limit_plot_20261029_211928.png"
+  },
+  "limitations": [
+    "Simplified simulated actuator model.",
+    "Raw demand above the configured rate limit is clipped.",
+    "This is not a physical terminal or hardware safety validation."
+  ]
+}

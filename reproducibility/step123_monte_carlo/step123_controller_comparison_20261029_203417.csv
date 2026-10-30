@@ -1,0 +1,6 @@
+Trajectory,Trials,Mean RMSE Difference FF-minus-feedback (px),Trials FF RMSE Lower (%),Trials Equal RMSE (%),Trials Feedback RMSE Lower (%)
+circular,60,,0.0,0.0,0.0
+figure8,60,,0.0,0.0,0.0
+random,60,,0.0,0.0,0.0
+spiral,60,,0.0,0.0,0.0
+straight,60,,0.0,0.0,0.0

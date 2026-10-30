@@ -1,0 +1,21 @@
+{
+  "step": 106,
+  "created_local": "20261029_195557",
+  "purpose": "Independent tracking benchmark evidence",
+  "historical_files_modified": false,
+  "simulation_run": false,
+  "model_loaded": false,
+  "status": "Prepared; benchmark source provenance still unresolved",
+  "historical_csvs": [
+    {
+      "path": "/content/drive/MyDrive/FSOC_SkyTrack_AI/experiments/baselines/multi_trajectory_validation.csv",
+      "sha256": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+      "size_bytes": 902
+    },
+    {
+      "path": "/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/airborne_simulation/airborne_multi_trajectory_validation.csv",
+      "sha256": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+      "size_bytes": 902
+    }
+  ]
+}

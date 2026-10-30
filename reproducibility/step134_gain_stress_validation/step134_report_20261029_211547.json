@@ -1,0 +1,30 @@
+{
+  "step": 134,
+  "trials_per_gain_per_condition": 30,
+  "gains": [
+    5.0,
+    10.0,
+    12.0
+  ],
+  "latency_frames": [
+    0,
+    1,
+    3
+  ],
+  "miss_rates": [
+    0.0,
+    0.1,
+    0.2
+  ],
+  "noise_std_px": 2.0,
+  "paired_conditions": 9,
+  "gain10_conditions_with_lower_mean_rmse_than_gain5": 9,
+  "gain12_conditions_with_lower_mean_rmse_than_gain5": 9,
+  "outputs": {
+    "raw": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step134_gain_stress_validation/step134_raw_20261029_211547.csv",
+    "summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step134_gain_stress_validation/step134_summary_20261029_211547.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step134_gain_stress_validation/step134_paired_20261029_211547.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step134_gain_stress_validation/step134_gain_stress_20261029_211547.png"
+  },
+  "interpretation_note": "This is a simplified simulation stress test, not hardware validation. Consider RMSE, lock time, saturation, and worst-case error together; do not choose a gain from RMSE alone."
+}

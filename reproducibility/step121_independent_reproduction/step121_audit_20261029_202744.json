@@ -1,0 +1,39 @@
+{
+  "step": 121,
+  "historical_csv": "/content/drive/MyDrive/FSOC_AI_Virtual_Camera_Tracking/results/airborne_simulation/airborne_multi_trajectory_validation.csv",
+  "historical_sha256_before": "17205f4ceff024d1fe60bc42883d82225e474d4176fb11af40b12ac455c332cb",
+  "historical_file_modified": false,
+  "method": "Independent reimplementation of notebook cell 274",
+  "parameters": {
+    "FPS": 30,
+    "duration_seconds": 10,
+    "KP": 5.0,
+    "FF_GAIN": 1.0,
+    "max_pan_tilt_rate_deg_s": 5.0,
+    "FOV_degrees": [
+      4.0,
+      3.0
+    ]
+  },
+  "figure8_reproduced": {
+    "Average Error (px)": 9.397575609534782e-05,
+    "RMSE (px)": 0.00010679759287857822,
+    "Maximum Error (px)": 0.0001882543502315752,
+    "Final Error (px)": 3.964761785791535e-05,
+    "\u226410 px Lock (%)": 100.0,
+    "Visibility (%)": 100.0,
+    "Max Pan Demand (deg/s)": 0.3208535224352462,
+    "Max Tilt Demand (deg/s)": 0.3666799479083219
+  },
+  "figure8_historical": {
+    "Average Error (px)": 9.397575609534782e-05,
+    "RMSE (px)": 0.0001067975928785,
+    "Maximum Error (px)": 0.0001882543502315,
+    "Final Error (px)": 3.964761785791535e-05,
+    "\u226410 px Lock (%)": 100.0,
+    "Visibility (%)": 100.0,
+    "Max Pan Demand (deg/s)": 0.3208535224352462,
+    "Max Tilt Demand (deg/s)": 0.3666799479083219
+  },
+  "reproduced_csv": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step121_independent_reproduction/step121_reproduced_metrics_20261029_202744.csv"
+}

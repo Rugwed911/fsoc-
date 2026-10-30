@@ -1,0 +1,28 @@
+{
+  "step": 133,
+  "trials_per_gain": 30,
+  "latency_frames": 3,
+  "miss_probability_pct": 20.0,
+  "tracking_kp": 5.0,
+  "acquisition_gains": [
+    5.0,
+    7.5,
+    10.0,
+    12.0
+  ],
+  "best_mean_full_rmse": {
+    "acquisition_kp": 12.0,
+    "mean_rmse_px": 13.367663867499187
+  },
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step133_acquisition_gain/step133_raw_20261029_211227.csv",
+    "summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step133_acquisition_gain/step133_summary_20261029_211227.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step133_acquisition_gain/step133_paired_comparison_20261029_211227.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step133_acquisition_gain/step133_acquisition_gain_20261029_211227.png"
+  },
+  "limitations": [
+    "Simplified simulation, not hardware validation.",
+    "Gain switching is based on sustained simulated lock.",
+    "The result should be checked for actuator saturation and stability."
+  ]
+}

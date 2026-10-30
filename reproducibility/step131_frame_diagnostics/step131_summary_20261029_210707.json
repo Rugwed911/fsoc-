@@ -1,0 +1,17 @@
+{
+  "Trajectory": "straight",
+  "Prediction factor": 0.75,
+  "Latency frames": 3,
+  "Miss probability (%)": 20.0,
+  "RMSE (px)": 15.14853822216941,
+  "Mean error (px)": 4.405337288830916,
+  "P95 error (px)": 12.100016365500844,
+  "Maximum error (px)": 111.79593281650295,
+  "Lock rate (%)": 94.33333333333334,
+  "Visibility (%)": 100.0,
+  "Pan saturation frames (%)": 0.0,
+  "Tilt saturation frames (%)": 0.0,
+  "Peak absolute pan demand (deg/s)": 3.463632655158703,
+  "Peak absolute tilt demand (deg/s)": 0.3964492939953867,
+  "Frames without delivered measurement (%)": 17.666666666666668
+}

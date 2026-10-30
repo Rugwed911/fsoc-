@@ -1,0 +1,41 @@
+{
+  "step": 129,
+  "trajectories": [
+    "straight",
+    "figure8"
+  ],
+  "trials_per_factor_per_trajectory": 30,
+  "latency_frames": 3,
+  "miss_probability": 0.2,
+  "prediction_factors": [
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5
+  ],
+  "outputs": {
+    "raw_trials": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step129_prediction_horizon/step129_raw_20261029_210237.csv",
+    "summary": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step129_prediction_horizon/step129_summary_20261029_210237.csv",
+    "paired_comparison": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step129_prediction_horizon/step129_paired_comparison_20261029_210237.csv",
+    "plot": "/content/drive/MyDrive/FSOC_SkyTrack_AI/reproducibility/step129_prediction_horizon/step129_horizon_sweep_20261029_210237.png"
+  },
+  "best_factor_by_trajectory": [
+    {
+      "Trajectory": "figure8",
+      "Prediction factor": 0.5,
+      "Mean_RMSE_px": 3.3636399391771463
+    },
+    {
+      "Trajectory": "straight",
+      "Prediction factor": 0.75,
+      "Mean_RMSE_px": 15.510372374210286
+    }
+  ],
+  "limitations": [
+    "Simplified simulation; not hardware validation.",
+    "Horizon factor scales constant-velocity propagation only.",
+    "A factor above 1 may overpredict target motion.",
+    "Approximate confidence intervals are descriptive."
+  ]
+}
