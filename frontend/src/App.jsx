@@ -83,7 +83,7 @@ function Overview({data, audit, online}) {
 }
 
 function MissionDemo() {
-  const videoUrl = 'https://raw.githubusercontent.com/Rugwed911/fsoc-/main/results/videos/validated_c18_airborne_demo_h264.mp4'
+  const videoUrl = '/videos/validated_c18_airborne_demo_h264.mp4'
   return <div className="page">
     <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Playback of the existing validated C18 airborne AI-in-the-loop FSOC tracking experiment."/>
     <div className="panel demo-panel">
