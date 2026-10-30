@@ -115,9 +115,29 @@ function Overview({data, audit, online}) {
 }
 
 function MissionDemo() {
+  const clips = [
+    ['Airborne optical tracking demo', '/videos/airborne_optical_tracking_demo_final.mp4', '10-second recorded demo · 720p'],
+    ['Final AI-in-the-loop airborne FSOC', '/videos/final_ai_in_loop_airborne_fsoc.mp4', '10-second recorded demo · 720p'],
+    ['Feasible airborne tracking demo', '/videos/airborne_fsoc_feasible_tracking_demo.mp4', 'Recorded demo · 720p'],
+    ['Virtual camera tracking demo', '/videos/airborne_fsoc_virtual_camera_demo.mp4', 'Recorded demo · 720p'],
+    ['YOLO + Kalman tracking demo', '/videos/airborne_fsoc_yolo_kalman_demo.mp4', 'Recorded demo · 720p'],
+    ['Final airborne FSOC tracking demo', '/videos/final_airborne_fsoc_tracking_demo.mp4', '15-second recorded demo · 720p'],
+  ]
   return <div className="page">
-    <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Playback of the existing validated C18 airborne AI-in-the-loop FSOC tracking experiment."/>
+    <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Recorded demonstrations of airborne FSOC tracking, virtual-camera operation, beacon detection and filtering."/>
     <MissionVideoPanel/>
+    <div className="section-heading"><span>ADDITIONAL TRACKING DEMONSTRATIONS</span><span>6 RECORDED CLIPS</span></div>
+    <div className="grid-two">
+      {clips.map(([title,src,caption]) => <div className="panel demo-panel" key={src}>
+        <div className="section-heading"><span>{title.toUpperCase()}</span><span>RECORDED</span></div>
+        <video className="mission-video" controls playsInline preload="metadata">
+          <source src={src} type="video/mp4"/>
+          Your browser does not support HTML5 video.
+        </video>
+        <p className="muted small">{caption}</p>
+      </div>)}
+    </div>
+    <p className="muted small">These are recorded project demonstrations, not live camera feeds or live aircraft connections.</p>
   </div>
 }
 
