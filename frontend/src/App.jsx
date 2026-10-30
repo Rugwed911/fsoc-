@@ -36,6 +36,22 @@ function formatValue(v) {
   return String(v)
 }
 
+function MissionVideoPanel() {
+  const videoUrl = '/videos/validated_c18_airborne_demo_h264.mp4'
+  return <div className="panel demo-panel">
+    <div className="section-heading"><span>VALIDATED C18 / AIRBORNE RUN</span><span>RECORDED EXPERIMENT</span></div>
+    <video className="mission-video" controls playsInline preload="metadata">
+      <source src={videoUrl} type="video/mp4"/>
+      Your browser does not support HTML5 video.
+    </video>
+    <div className="demo-caption">
+      <div><div className="eyebrow green">AI-IN-THE-LOOP TRACKING</div><h2>Airborne optical beacon tracking</h2></div>
+      <span className="demo-format">MP4 · H.264</span>
+    </div>
+    <p className="muted small">Recorded simulation demonstration — not a live camera feed or live aircraft connection.</p>
+  </div>
+}
+
 function Overview({data, audit, online}) {
   const metrics = data?.metrics || {}
   const centroid = metrics.centroid_error_px || {}
@@ -54,6 +70,8 @@ function Overview({data, audit, online}) {
       </div>
       <Radar />
     </div>
+
+    <MissionVideoPanel/>
 
     <div className="section-heading"><span>MISSION TELEMETRY</span><span>RECORDED DATA / NOT LIVE SENSORS</span></div>
     <div className="metrics-grid">
@@ -83,21 +101,9 @@ function Overview({data, audit, online}) {
 }
 
 function MissionDemo() {
-  const videoUrl = '/videos/validated_c18_airborne_demo_h264.mp4'
   return <div className="page">
     <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Playback of the existing validated C18 airborne AI-in-the-loop FSOC tracking experiment."/>
-    <div className="panel demo-panel">
-      <div className="section-heading"><span>VALIDATED C18 / AIRBORNE RUN</span><span>RECORDED EXPERIMENT</span></div>
-      <video className="mission-video" controls playsInline preload="metadata">
-        <source src={videoUrl} type="video/mp4"/>
-        Your browser does not support HTML5 video.
-      </video>
-      <div className="demo-caption">
-        <div><div className="eyebrow green">AI-IN-THE-LOOP TRACKING</div><h2>Airborne optical beacon tracking</h2></div>
-        <span className="demo-format">MP4 · H.264</span>
-      </div>
-      <p className="muted small">This is the pre-recorded simulation result already used by the Streamlit dashboard. It is not a live camera feed or a live aircraft connection.</p>
-    </div>
+    <MissionVideoPanel/>
   </div>
 }
 
