@@ -8,10 +8,11 @@ const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
 const nav = [
   ['overview', '01', 'Mission Overview'],
-  ['analytics', '02', 'Flight Analytics'],
-  ['audit', '03', 'Evidence Auditor'],
-  ['copilot', '04', 'AI Mission Engineer'],
-  ['architecture', '05', 'System Architecture']
+  ['demo', '02', 'Mission Video Demo'],
+  ['analytics', '03', 'Flight Analytics'],
+  ['audit', '04', 'Evidence Auditor'],
+  ['copilot', '05', 'AI Mission Engineer'],
+  ['architecture', '06', 'System Architecture']
 ]
 
 function Metric({label, value, note}) {
@@ -77,6 +78,25 @@ function Overview({data, audit, online}) {
         <p className="muted">This interface presents saved experimental evidence. It does not indicate a live aircraft connection, live optical terminal, or active sensor feed.</p>
         <p className="warning-text">Detector centroid error and closed-loop tracking error are different measurements. Interpret them separately.</p>
       </div>
+    </div>
+  </div>
+}
+
+function MissionDemo() {
+  const videoUrl = 'https://raw.githubusercontent.com/Rugwed911/fsoc-/main/results/videos/validated_c18_airborne_demo_h264.mp4'
+  return <div className="page">
+    <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Playback of the existing validated C18 airborne AI-in-the-loop FSOC tracking experiment."/>
+    <div className="panel demo-panel">
+      <div className="section-heading"><span>VALIDATED C18 / AIRBORNE RUN</span><span>RECORDED EXPERIMENT</span></div>
+      <video className="mission-video" controls playsInline preload="metadata">
+        <source src={videoUrl} type="video/mp4"/>
+        Your browser does not support HTML5 video.
+      </video>
+      <div className="demo-caption">
+        <div><div className="eyebrow green">AI-IN-THE-LOOP TRACKING</div><h2>Airborne optical beacon tracking</h2></div>
+        <span className="demo-format">MP4 · H.264</span>
+      </div>
+      <p className="muted small">This is the pre-recorded simulation result already used by the Streamlit dashboard. It is not a live camera feed or a live aircraft connection.</p>
     </div>
   </div>
 }
@@ -267,6 +287,7 @@ export default function App() {
 
   const page = {
     overview:<Overview data={data} audit={audit} online={online}/>,
+    demo:<MissionDemo/>,
     analytics:<Analytics data={data}/>,
     audit:<Audit audit={audit}/>,
     copilot:<Copilot/>,
