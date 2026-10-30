@@ -38,20 +38,34 @@ function formatValue(v) {
 
 function MissionVideoPanel() {
   const videoUrl = '/videos/validated_c18_airborne_demo_h264.mp4'
-  return <div className="panel demo-panel">
-    <div className="section-heading"><span>VALIDATED C18 / AIRBORNE RUN</span><span>RECORDED EXPERIMENT</span></div>
-    <video className="mission-video" controls playsInline preload="metadata">
-      <source src={videoUrl} type="video/mp4"/>
-      Your browser does not support HTML5 video.
-    </video>
-    <div className="demo-caption">
-      <div><div className="eyebrow green">AI-IN-THE-LOOP TRACKING</div><h2>Airborne optical beacon tracking</h2></div>
-      <span className="demo-format">MP4 · H.264</span>
+  const cinematicUrl = '/videos/FSOC_SkyTrack_Cinematic_Demo_75sec.mp4'
+  return <>
+    <div className="panel demo-panel">
+      <div className="section-heading"><span>VALIDATED C18 / AIRBORNE RUN</span><span>RECORDED EXPERIMENT</span></div>
+      <video className="mission-video" controls playsInline preload="metadata">
+        <source src={videoUrl} type="video/mp4"/>
+        Your browser does not support HTML5 video.
+      </video>
+      <div className="demo-caption">
+        <div><div className="eyebrow green">AI-IN-THE-LOOP TRACKING</div><h2>Airborne optical beacon tracking</h2></div>
+        <span className="demo-format">MP4 · H.264</span>
+      </div>
+      <p className="muted small">Recorded simulation demonstration — not a live camera feed or live aircraft connection.</p>
     </div>
-    <p className="muted small">Recorded simulation demonstration — not a live camera feed or live aircraft connection.</p>
-  </div>
+    <div className="panel demo-panel">
+      <div className="section-heading"><span>SKYTRACK / CINEMATIC PRESENTATION</span><span>75-SECOND VIDEO</span></div>
+      <video className="mission-video" controls playsInline preload="metadata">
+        <source src={cinematicUrl} type="video/mp4"/>
+        Your browser does not support HTML5 video.
+      </video>
+      <div className="demo-caption">
+        <div><div className="eyebrow green">PROJECT SHOWCASE</div><h2>SKYTRACK cinematic demo</h2></div>
+        <span className="demo-format">MP4 · 1080P · 30 FPS</span>
+      </div>
+      <p className="muted small">A cinematic 75-second presentation video for the SKYTRACK FSOC research project, intended to introduce the system and communicate its virtual-camera tracking concept and project demonstration.</p>
+    </div>
+  </>
 }
-
 function Overview({data, audit, online}) {
   const metrics = data?.metrics || {}
   const centroid = metrics.centroid_error_px || {}
