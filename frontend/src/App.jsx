@@ -115,9 +115,33 @@ function Overview({data, audit, online}) {
 }
 
 function MissionDemo() {
+  const extraVideos = [
+    { title: 'Airborne optical tracking demo', file: 'airborne_optical_tracking_demo_final.mp4', tag: 'OPTICAL TRACKING' },
+    { title: 'AI-in-the-loop airborne FSOC', file: 'final_ai_in_loop_airborne_fsoc.mp4', tag: 'AI-IN-THE-LOOP' },
+    { title: 'Feasible airborne FSOC tracking', file: 'airborne_fsoc_feasible_tracking_demo.mp4', tag: 'TRACKING FEASIBILITY' },
+    { title: 'Virtual camera airborne demo', file: 'airborne_fsoc_virtual_camera_demo.mp4', tag: 'VIRTUAL CAMERA' },
+    { title: 'YOLO + Kalman tracking demo', file: 'airborne_fsoc_yolo_kalman_demo.mp4', tag: 'YOLO / KALMAN' },
+    { title: 'Final airborne FSOC tracking demo', file: 'final_airborne_fsoc_tracking_demo.mp4', tag: 'FINAL DEMONSTRATION' }
+  ]
+
   return <div className="page">
-    <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Playback of the existing validated C18 airborne AI-in-the-loop FSOC tracking experiment."/>
+    <PageTitle code="02 / RECORDED FLIGHT DEMONSTRATION" title="MISSION VIDEO DEMO" subtitle="Recorded SKYTRACK virtual-camera, AI detection, and airborne FSOC tracking demonstrations."/>
     <MissionVideoPanel/>
+    <div className="section-heading"><span>ADDITIONAL MISSION CLIPS</span><span>6 RECORDED VIDEOS</span></div>
+    <div className="grid-two">
+      {extraVideos.map((video) => <div className="panel demo-panel" key={video.file}>
+        <div className="section-heading"><span>{video.tag}</span><span>RECORDED CLIP</span></div>
+        <video className="mission-video" controls playsInline preload="metadata">
+          <source src={`/videos/${video.file}`} type="video/mp4"/>
+          Your browser does not support HTML5 video.
+        </video>
+        <div className="demo-caption">
+          <div><div className="eyebrow green">SKYTRACK / MISSION DEMO</div><h2>{video.title}</h2></div>
+          <span className="demo-format">MP4</span>
+        </div>
+        <p className="muted small">Recorded demonstration clip. This is not a live aircraft or physical FSOC terminal feed.</p>
+      </div>)}
+    </div>
   </div>
 }
 function Radar() {
